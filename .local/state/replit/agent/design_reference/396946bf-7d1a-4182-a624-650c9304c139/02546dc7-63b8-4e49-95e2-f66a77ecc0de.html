@@ -1,0 +1,514 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eVend - Modern Vending Machine App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'primary': '#4F46E5',
+                        'secondary': '#3B82F6',
+                        'accent': '#FBBF24',
+                    }
+                }
+            }
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="font-inter bg-gray-50 overflow-hidden">
+
+    <!-- @COMPONENT: LandingSlider [3-step swipeable introduction] -->
+    <div id="landingSection" class="fixed inset-0 z-50 bg-gradient-to-br from-primary via-secondary to-blue-600">
+        <div class="relative h-full overflow-hidden">
+            <!-- Slider Container -->
+            <div id="sliderContainer" class="flex h-full transition-transform duration-500 ease-in-out" style="width: 300%;">
+                
+                <!-- Slide 1: OTP Input Step -->
+                <div class="w-1/3 flex flex-col items-center justify-center px-8 text-white text-center relative">
+                    <div class="mb-8">
+                        <!-- eVend Logo -->
+                        <h1 class="text-5xl font-bold mb-2">
+                            <span class="text-white">e</span><span class="text-accent">v</span><span class="text-red-400">E</span><span class="text-cyan-300">N</span><span class="text-gray-900">D</span>
+                        </h1>
+                    </div>
+                    
+                    <!-- Vending Machine Icon -->
+                    <div class="bg-white bg-opacity-20 p-6 rounded-2xl mb-8">
+                        <i class="fas fa-coffee text-6xl text-white"></i>
+                    </div>
+                    
+                    <h2 class="text-2xl font-semibold mb-4 leading-tight">
+                        Input the OTP given to you on the eVending machine and receive your drink
+                    </h2>
+                    
+                    <div class="absolute bottom-32">
+                        <div class="flex space-x-2">
+                            <div class="w-3 h-3 rounded-full bg-white"></div>
+                            <div class="w-3 h-3 rounded-full bg-white bg-opacity-40"></div>
+                            <div class="w-3 h-3 rounded-full bg-white bg-opacity-40"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Slide 2: Payment Step -->
+                <div class="w-1/3 flex flex-col items-center justify-center px-8 text-white text-center relative">
+                    <div class="mb-8">
+                        <!-- eVend Logo -->
+                        <h1 class="text-5xl font-bold mb-2">
+                            <span class="text-white">e</span><span class="text-accent">v</span><span class="text-red-400">E</span><span class="text-cyan-300">N</span><span class="text-gray-900">D</span>
+                        </h1>
+                    </div>
+                    
+                    <!-- OTP Display -->
+                    <div class="mb-8">
+                        <p class="text-lg mb-4">Your OTP is</p>
+                        <div class="flex space-x-3 justify-center">
+                            <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
+                                <i class="fas fa-star text-primary text-xl"></i>
+                            </div>
+                            <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
+                                <i class="fas fa-star text-primary text-xl"></i>
+                            </div>
+                            <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
+                                <i class="fas fa-star text-primary text-xl"></i>
+                            </div>
+                            <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
+                                <i class="fas fa-star text-primary text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h2 class="text-2xl font-semibold mb-4 leading-tight">
+                        Make Payment<br>and<br>receive your<br>4 digits OTP
+                    </h2>
+                    
+                    <div class="absolute bottom-32">
+                        <div class="flex space-x-2">
+                            <div class="w-3 h-3 rounded-full bg-white bg-opacity-40"></div>
+                            <div class="w-3 h-3 rounded-full bg-white"></div>
+                            <div class="w-3 h-3 rounded-full bg-white bg-opacity-40"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Slide 3: Drink Selection Step -->
+                <div class="w-1/3 flex flex-col items-center justify-center px-8 text-white text-center relative">
+                    <div class="mb-8">
+                        <!-- eVend Logo -->
+                        <h1 class="text-5xl font-bold mb-2">
+                            <span class="text-white">e</span><span class="text-accent">v</span><span class="text-red-400">E</span><span class="text-cyan-300">N</span><span class="text-gray-900">D</span>
+                        </h1>
+                    </div>
+                    
+                    <!-- Drinks Display -->
+                    <div class="grid grid-cols-5 gap-2 mb-8">
+                        <!-- Realistic beverage can images from Unsplash -->
+                        <!-- Red cola can similar to Coca-Cola -->
+                        <img data-mock="true" src="https://images.unsplash.com/photo-1581098365948-6a5a912b7a49?w=80&h=120&fit=crop" alt="Cola drink" class="w-12 h-16 object-cover rounded">
+                        <!-- Blue can similar to Pepsi -->
+                        <img data-mock="true" src="https://pixabay.com/get/g9ed5d3c8c7b26085d2beea6993b97995759b7c4fb83c37698058f919928ce554797b0e1d889b235db76b39f7c1bab06d89633cac1cf6eb2f56b18b10893a90b1_1280.jpg" alt="Blue soda" class="w-12 h-16 object-cover rounded">
+                        <!-- Orange drink can -->
+                        <img data-mock="true" src="https://images.unsplash.com/photo-1571613316887-6f8d5cbf7ef7?w=80&h=120&fit=crop" alt="Orange soda" class="w-12 h-16 object-cover rounded">
+                        <!-- Green sprite-like can -->
+                        <img data-mock="true" src="https://pixabay.com/get/gefc6d0bae2251e51df0e453928130ea09947ab85914eec1b768f7ac255846064c6ba6229c9aac08b136d882d93470fa8beb0683498ae3d4f42d67313fa3647d7_1280.jpg" alt="Lemon soda" class="w-12 h-16 object-cover rounded">
+                        <!-- Energy drink can -->
+                        <img data-mock="true" src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=80&h=120&fit=crop" alt="Energy drink" class="w-12 h-16 object-cover rounded">
+                        <!-- More beverage cans -->
+                        <img data-mock="true" src="https://pixabay.com/get/g5d48f1c4f438ecfaf8fb709e0fd8ee683dd18135f3d716cb40e8356411967626ca9e9162cca3bc186169a908bc11f87716d8c49d20810aeed01ac609f198d237_1280.jpg" alt="Diet cola" class="w-12 h-16 object-cover rounded">
+                        <img data-mock="true" src="https://pixabay.com/get/g5d48f1c4f438ecfaf8fb709e0fd8ee683dd18135f3d716cb40e8356411967626ca9e9162cca3bc186169a908bc11f87716d8c49d20810aeed01ac609f198d237_1280.jpg" alt="Soda can" class="w-12 h-16 object-cover rounded">
+                        <img data-mock="true" src="https://images.unsplash.com/photo-1581098365948-6a5a912b7a49?w=80&h=120&fit=crop" alt="Cola variant" class="w-12 h-16 object-cover rounded">
+                    </div>
+                    
+                    <h2 class="text-2xl font-semibold mb-4 leading-tight">
+                        Select the drink<br>you desire!
+                    </h2>
+                    
+                    <!-- START Button -->
+                    <button id="startButton" class="absolute bottom-8 right-8 bg-white text-primary px-6 py-3 rounded-full font-semibold shadow-lg hover:bg-gray-100 transition-colors">
+                        START <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                    
+                    <div class="absolute bottom-32">
+                        <div class="flex space-x-2">
+                            <div class="w-3 h-3 rounded-full bg-white bg-opacity-40"></div>
+                            <div class="w-3 h-3 rounded-full bg-white bg-opacity-40"></div>
+                            <div class="w-3 h-3 rounded-full bg-white"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: LandingSlider -->
+
+    <!-- @COMPONENT: LoginPage [User authentication interface] -->
+    <div id="loginSection" class="hidden fixed inset-0 z-40 bg-gradient-to-br from-primary via-secondary to-blue-600">
+        <div class="flex flex-col items-center justify-center h-full px-8 text-white">
+            <!-- eVend Logo -->
+            <div class="mb-12">
+                <h1 class="text-6xl font-bold mb-4">
+                    <span class="text-white">e</span><span class="text-accent">v</span><span class="text-red-400">E</span><span class="text-cyan-300">N</span><span class="text-gray-900">D</span>
+                </h1>
+                <p class="text-center text-blue-100">Your Campus Vending Solution</p>
+            </div>
+
+            <!-- Login Form -->
+            <div class="w-full max-w-sm">
+                <div class="bg-white rounded-2xl p-8 shadow-2xl">
+                    <h2 class="text-2xl font-semibold text-gray-800 text-center mb-6">Welcome Back</h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <input type="email" placeholder="Email or Phone Number" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-800">
+                        </div>
+                        
+                        <div>
+                            <input type="password" placeholder="Password" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-800">
+                        </div>
+                        
+                        <button id="loginButton" class="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors">
+                            Sign In
+                        </button>
+                        
+                        <div class="text-center">
+                            <a href="#" class="text-primary text-sm hover:underline">Forgot Password?</a>
+                        </div>
+                        
+                        <div class="text-center pt-4">
+                            <p class="text-gray-600 text-sm">Don't have an account? 
+                                <a href="#" class="text-primary hover:underline font-medium">Sign Up</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: LoginPage -->
+
+    <!-- @COMPONENT: MainApp [Drink selection and ordering interface] -->
+    <div id="mainAppSection" class="hidden min-h-screen bg-gray-50">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-primary to-secondary text-white">
+            <div class="px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <button class="text-white">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <h1 class="text-xl font-semibold">PLACE ORDER</h1>
+                    <button class="text-white">
+                        <i class="fas fa-cog text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- User Balance Section -->
+            <div class="px-6 pb-6">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-blue-100 text-sm">BALANCE</p>
+                        <p class="text-2xl font-bold" data-bind="user.balance">₦ 4,180.20</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Drinks Grid -->
+        <div class="p-6">
+            <div class="grid grid-cols-2 gap-4">
+                <!-- @MAP: drinks.map(drink => ( -->
+                
+                <!-- Coca-Cola Style Drink -->
+                <div class="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer" data-drink="cola">
+                    <!-- Classic red cola can -->
+                    <img data-mock="true" src="https://images.unsplash.com/photo-1581098365948-6a5a912b7a49?w=200&h=250&fit=crop" 
+                         alt="Classic Cola" class="w-full h-32 object-cover rounded-lg mb-3">
+                    <h3 class="font-medium text-gray-800">Classic Cola</h3>
+                    <p class="text-primary font-semibold">₦ 200</p>
+                </div>
+
+                <!-- Fanta Style Orange Drink -->
+                <div class="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer" data-drink="orange">
+                    <!-- Orange flavored soda can -->
+                    <img data-mock="true" src="https://images.unsplash.com/photo-1571613316887-6f8d5cbf7ef7?w=200&h=250&fit=crop" 
+                         alt="Orange Soda" class="w-full h-32 object-cover rounded-lg mb-3">
+                    <h3 class="font-medium text-gray-800">Orange Fizz</h3>
+                    <p class="text-primary font-semibold">₦ 180</p>
+                </div>
+
+                <!-- Sprite Style Drink -->
+                <div class="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer" data-drink="lemon">
+                    <!-- Lemon-lime clear soda can -->
+                    <img data-mock="true" src="https://pixabay.com/get/gc8b6e0d04eed0bfbdacfb68e36739a4e3b56407d5c05e3bef06d32d2b856f07c0b835ef4982cae073b5d74bdefdfcfde7aba11581e155faacfa7bc4c91448dab_1280.jpg" 
+                         alt="Lemon Lime Soda" class="w-full h-32 object-cover rounded-lg mb-3">
+                    <h3 class="font-medium text-gray-800">Lemon Splash</h3>
+                    <p class="text-primary font-semibold">₦ 180</p>
+                </div>
+
+                <!-- Energy Drink -->
+                <div class="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer" data-drink="energy">
+                    <!-- Dark energy drink can -->
+                    <img data-mock="true" src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&h=250&fit=crop" 
+                         alt="Energy Drink" class="w-full h-32 object-cover rounded-lg mb-3">
+                    <h3 class="font-medium text-gray-800">Power Energy</h3>
+                    <p class="text-primary font-semibold">₦ 300</p>
+                </div>
+
+                <!-- Pepsi Style Drink -->
+                <div class="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer" data-drink="blue-cola">
+                    <!-- Blue cola can similar to Pepsi -->
+                    <img data-mock="true" src="https://pixabay.com/get/g649892ce564764055c15ff1c4f29ebc5aac3ef9ca3bd42ff366b0e2d9346a1a9ba663d3a15187ce3dd7b0feac0575c9ec3a622891fb06fe6f8231efe098214d2_1280.jpg" 
+                         alt="Blue Cola" class="w-full h-32 object-cover rounded-lg mb-3">
+                    <h3 class="font-medium text-gray-800">Blue Cola</h3>
+                    <p class="text-primary font-semibold">₦ 200</p>
+                </div>
+
+                <!-- Malt Drink -->
+                <div class="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer" data-drink="malt">
+                    <!-- Golden malt drink can -->
+                    <img data-mock="true" src="https://pixabay.com/get/g5e9554e1132ff828d106ba9e90efa355994e4430c387f43bd45ccacfd736f0b1e4dd4f3a05b442621ae44c77c93210277976d80fac37a3387f761c8dfa608b14_1280.jpg" 
+                         alt="Malt Drink" class="w-full h-32 object-cover rounded-lg mb-3">
+                    <h3 class="font-medium text-gray-800">Golden Malt</h3>
+                    <p class="text-primary font-semibold">₦ 250</p>
+                </div>
+                
+                <!-- @END_MAP )) -->
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: MainApp -->
+
+    <!-- @COMPONENT: PaymentModal [Payment processing interface] -->
+    <div id="paymentModal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-6">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <div class="text-center mb-6">
+                <h2 class="text-xl font-semibold text-gray-800">Complete Payment</h2>
+                <p class="text-gray-600 mt-2">Selected: <span id="selectedDrink" data-mock="true">Classic Cola</span></p>
+                <p class="text-2xl font-bold text-primary mt-2">₦ <span id="drinkPrice" data-mock="true">200</span></p>
+            </div>
+
+            <div class="space-y-4">
+                <button class="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors">
+                    <i class="fas fa-wallet mr-2"></i>Pay with Wallet
+                </button>
+                
+                <button class="w-full bg-gray-100 text-gray-800 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
+                    <i class="fas fa-credit-card mr-2"></i>Pay with Card
+                </button>
+                
+                <button id="cancelPayment" class="w-full text-gray-600 py-2 hover:text-gray-800 transition-colors">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: PaymentModal -->
+
+    <!-- @COMPONENT: OTPDisplay [OTP confirmation interface] -->
+    <div id="otpSection" class="hidden fixed inset-0 z-50 bg-gradient-to-br from-primary via-secondary to-blue-600">
+        <div class="flex flex-col items-center justify-center h-full px-8 text-white text-center">
+            <!-- eVend Logo -->
+            <div class="mb-8">
+                <h1 class="text-5xl font-bold mb-2">
+                    <span class="text-white">e</span><span class="text-accent">v</span><span class="text-red-400">E</span><span class="text-cyan-300">N</span><span class="text-gray-900">D</span>
+                </h1>
+            </div>
+
+            <div class="bg-white bg-opacity-10 rounded-2xl p-8 backdrop-blur-sm">
+                <h2 class="text-2xl font-semibold mb-4">Payment Successful!</h2>
+                
+                <p class="text-blue-100 mb-2">Your OTP is</p>
+                
+                <!-- @STATE: otp:string = generateOTP() -->
+                <div class="flex space-x-3 justify-center mb-6">
+                    <div class="w-14 h-14 bg-white rounded-lg flex items-center justify-center text-primary text-2xl font-bold">
+                        <span id="otp1" data-mock="true">7</span>
+                    </div>
+                    <div class="w-14 h-14 bg-white rounded-lg flex items-center justify-center text-primary text-2xl font-bold">
+                        <span id="otp2" data-mock="true">4</span>
+                    </div>
+                    <div class="w-14 h-14 bg-white rounded-lg flex items-center justify-center text-primary text-2xl font-bold">
+                        <span id="otp3" data-mock="true">2</span>
+                    </div>
+                    <div class="w-14 h-14 bg-white rounded-lg flex items-center justify-center text-primary text-2xl font-bold">
+                        <span id="otp4" data-mock="true">9</span>
+                    </div>
+                </div>
+                
+                <p class="text-sm text-blue-100 mb-6">Enter this code on the vending machine to get your drink</p>
+                
+                <button id="backToMain" class="bg-white text-primary px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors">
+                    Order Another Drink
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: OTPDisplay -->
+
+    <script>
+        (() => {
+            // @STATE: currentSlide:number = 0
+            let currentSlide = 0;
+            const totalSlides = 3;
+            let startX = 0;
+            let currentX = 0;
+            let isDragging = false;
+
+            const sliderContainer = document.getElementById('sliderContainer');
+            const landingSection = document.getElementById('landingSection');
+            const loginSection = document.getElementById('loginSection');
+            const mainAppSection = document.getElementById('mainAppSection');
+            const paymentModal = document.getElementById('paymentModal');
+            const otpSection = document.getElementById('otpSection');
+
+            // Swipe functionality for landing slider
+            function updateSliderPosition() {
+                const translateX = -(currentSlide * (100 / totalSlides));
+                sliderContainer.style.transform = `translateX(${translateX}%)`;
+                updateDots();
+            }
+
+            function updateDots() {
+                const slides = document.querySelectorAll('#landingSection .absolute.bottom-32');
+                slides.forEach((slide, index) => {
+                    const dots = slide.querySelectorAll('.w-3.h-3.rounded-full');
+                    dots.forEach((dot, dotIndex) => {
+                        if (dotIndex === currentSlide && index === currentSlide) {
+                            dot.className = 'w-3 h-3 rounded-full bg-white';
+                        } else if (index === currentSlide) {
+                            dot.className = 'w-3 h-3 rounded-full bg-white bg-opacity-40';
+                        }
+                    });
+                });
+            }
+
+            // Touch events for mobile swipe
+            sliderContainer.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                isDragging = true;
+            });
+
+            sliderContainer.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                currentX = e.touches[0].clientX;
+            });
+
+            sliderContainer.addEventListener('touchend', () => {
+                if (!isDragging) return;
+                isDragging = false;
+                
+                const diffX = startX - currentX;
+                const threshold = 50;
+                
+                if (Math.abs(diffX) > threshold) {
+                    if (diffX > 0 && currentSlide < totalSlides - 1) {
+                        currentSlide++;
+                    } else if (diffX < 0 && currentSlide > 0) {
+                        currentSlide--;
+                    }
+                    updateSliderPosition();
+                }
+            });
+
+            // Mouse events for desktop
+            sliderContainer.addEventListener('mousedown', (e) => {
+                startX = e.clientX;
+                isDragging = true;
+                e.preventDefault();
+            });
+
+            sliderContainer.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                currentX = e.clientX;
+            });
+
+            sliderContainer.addEventListener('mouseup', () => {
+                if (!isDragging) return;
+                isDragging = false;
+                
+                const diffX = startX - currentX;
+                const threshold = 50;
+                
+                if (Math.abs(diffX) > threshold) {
+                    if (diffX > 0 && currentSlide < totalSlides - 1) {
+                        currentSlide++;
+                    } else if (diffX < 0 && currentSlide > 0) {
+                        currentSlide--;
+                    }
+                    updateSliderPosition();
+                }
+            });
+
+            // START button functionality
+            document.getElementById('startButton').addEventListener('click', () => {
+                landingSection.classList.add('hidden');
+                loginSection.classList.remove('hidden');
+            });
+
+            // Login functionality
+            document.getElementById('loginButton').addEventListener('click', () => {
+                // TODO: Implement actual authentication logic
+                loginSection.classList.add('hidden');
+                mainAppSection.classList.remove('hidden');
+            });
+
+            // Drink selection
+            const drinkCards = document.querySelectorAll('[data-drink]');
+            drinkCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    const drinkName = card.querySelector('h3').textContent;
+                    const drinkPrice = card.querySelector('.text-primary').textContent.replace('₦ ', '');
+                    
+                    document.getElementById('selectedDrink').textContent = drinkName;
+                    document.getElementById('drinkPrice').textContent = drinkPrice;
+                    
+                    paymentModal.classList.remove('hidden');
+                });
+            });
+
+            // Payment processing
+            document.querySelectorAll('#paymentModal button:not(#cancelPayment)').forEach(button => {
+                button.addEventListener('click', () => {
+                    // TODO: Implement actual payment processing
+                    paymentModal.classList.add('hidden');
+                    
+                    // Generate random OTP
+                    document.getElementById('otp1').textContent = Math.floor(Math.random() * 10);
+                    document.getElementById('otp2').textContent = Math.floor(Math.random() * 10);
+                    document.getElementById('otp3').textContent = Math.floor(Math.random() * 10);
+                    document.getElementById('otp4').textContent = Math.floor(Math.random() * 10);
+                    
+                    otpSection.classList.remove('hidden');
+                });
+            });
+
+            // Cancel payment
+            document.getElementById('cancelPayment').addEventListener('click', () => {
+                paymentModal.classList.add('hidden');
+            });
+
+            // Back to main app
+            document.getElementById('backToMain').addEventListener('click', () => {
+                otpSection.classList.add('hidden');
+                mainAppSection.classList.remove('hidden');
+            });
+
+            // Initialize
+            updateSliderPosition();
+        })();
+    </script>
+</body>
+</html>
