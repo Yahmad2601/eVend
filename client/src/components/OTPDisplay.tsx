@@ -10,15 +10,15 @@ export default function OTPDisplay({ order, onBackToMain }: OTPDisplayProps) {
   const otpDigits = order.otp.split('');
 
   return (
-    <div className="fixed inset-0 z-50 bg-gradient-to-br from-primary via-secondary to-blue-600">
+    <div className="fixed inset-0 z-50 bg-gradient-to-br from-primary via-secondary to-gray-700">
       <div className="flex flex-col items-center justify-center h-full px-8 text-white text-center">
         <div className="mb-8">
           <h1 className="text-5xl font-bold mb-2">
             <span className="text-white">e</span>
-            <span className="text-accent">v</span>
-            <span className="text-red-400">E</span>
-            <span className="text-cyan-300">N</span>
-            <span className="text-gray-900">D</span>
+            <span className="text-gray-200">v</span>
+            <span className="text-gray-300">E</span>
+            <span className="text-gray-200">N</span>
+            <span className="text-white">D</span>
           </h1>
         </div>
 

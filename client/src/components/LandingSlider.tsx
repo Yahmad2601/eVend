@@ -102,7 +102,7 @@ export default function LandingSlider({ onStart }: LandingSliderProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-gradient-to-br from-primary via-secondary to-blue-600 overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-gradient-to-br from-primary via-secondary to-gray-700 overflow-hidden">
       <div
         ref={sliderRef}
         className="flex h-full transition-transform duration-500 ease-in-out cursor-grab active:cursor-grabbing"
@@ -126,10 +126,10 @@ export default function LandingSlider({ onStart }: LandingSliderProps) {
             <div className="mb-8">
               <h1 className="text-5xl font-bold mb-2">
                 <span className="text-white">e</span>
-                <span className="text-accent">v</span>
-                <span className="text-red-400">E</span>
-                <span className="text-cyan-300">N</span>
-                <span className="text-gray-900">D</span>
+                <span className="text-gray-200">v</span>
+                <span className="text-gray-300">E</span>
+                <span className="text-gray-200">N</span>
+                <span className="text-white">D</span>
               </h1>
             </div>
             

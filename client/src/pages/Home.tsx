@@ -6,6 +6,7 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import DrinkCard from "@/components/DrinkCard";
 import PaymentModal from "@/components/PaymentModal";
+import CardPaymentForm from "@/components/CardPaymentForm";
 import OTPDisplay from "@/components/OTPDisplay";
 import { ProfileDropdown, MenuDropdown } from "@/components/HeaderDropdown";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ export default function Home() {
   
   const [selectedDrink, setSelectedDrink] = useState<Drink | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showCardForm, setShowCardForm] = useState(false);
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
   const [showOTP, setShowOTP] = useState(false);
 
@@ -101,6 +103,12 @@ export default function Home() {
   const handlePayment = async (paymentMethod: 'wallet' | 'card') => {
     if (!selectedDrink) return;
     
+    if (paymentMethod === 'card') {
+      setShowPaymentModal(false);
+      setShowCardForm(true);
+      return;
+    }
+    
     createOrderMutation.mutate({
       drinkId: selectedDrink.id,
       amount: selectedDrink.price,
@@ -108,10 +116,27 @@ export default function Home() {
     });
   };
 
+  const handleCardPaymentComplete = () => {
+    if (!selectedDrink) return;
+    
+    createOrderMutation.mutate({
+      drinkId: selectedDrink.id,
+      amount: selectedDrink.price,
+      paymentMethod: 'card',
+    });
+  };
+
   const handleBackToMain = () => {
     setShowOTP(false);
+    setShowCardForm(false);
+    setShowPaymentModal(false);
     setCurrentOrder(null);
     setSelectedDrink(null);
+  };
+
+  const handleBackFromCard = () => {
+    setShowCardForm(false);
+    setShowPaymentModal(true);
   };
 
   const handleLogout = () => {
@@ -141,6 +166,18 @@ export default function Home() {
   // Show OTP if order is complete
   if (showOTP && currentOrder) {
     return <OTPDisplay order={currentOrder} onBackToMain={handleBackToMain} />;
+  }
+
+  // Show card payment form
+  if (showCardForm && selectedDrink) {
+    return (
+      <CardPaymentForm
+        drink={selectedDrink}
+        onBack={handleBackFromCard}
+        onPaymentComplete={handleCardPaymentComplete}
+        isProcessing={createOrderMutation.isPending}
+      />
+    );
   }
 
   return (
