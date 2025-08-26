@@ -1,19 +1,54 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertOrderSchema } from "@shared/schema";
 import { z } from "zod";
 
+// Mock authentication middleware
+const mockAuth = async (req: any, res: any, next: any) => {
+  // Create a mock user session
+  req.user = {
+    claims: {
+      sub: 'mock-user-123',
+      email: 'student@campus.edu',
+      first_name: 'Test',
+      last_name: 'Student',
+      profile_image_url: null,
+    }
+  };
+  next();
+};
+
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware
-  await setupAuth(app);
+  // Mock login route
+  app.get('/api/login', (req, res) => {
+    // Simulate login by redirecting to home
+    res.redirect('/');
+  });
+
+  // Mock logout route  
+  app.get('/api/logout', (req, res) => {
+    res.redirect('/');
+  });
 
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', mockAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      let user = await storage.getUser(userId);
+      
+      // Create mock user if doesn't exist
+      if (!user) {
+        user = await storage.upsertUser({
+          id: userId,
+          email: req.user.claims.email,
+          firstName: req.user.claims.first_name,
+          lastName: req.user.claims.last_name,
+          profileImageUrl: req.user.claims.profile_image_url,
+          walletBalance: '4180.20'
+        });
+      }
+      
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -46,7 +81,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Orders routes
-  app.post('/api/orders', isAuthenticated, async (req: any, res) => {
+  app.post('/api/orders', mockAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const orderData = insertOrderSchema.parse(req.body);
@@ -93,7 +128,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/orders', isAuthenticated, async (req: any, res) => {
+  app.get('/api/orders', mockAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const orders = await storage.getUserOrders(userId);
@@ -104,7 +139,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/orders/:id', isAuthenticated, async (req: any, res) => {
+  app.get('/api/orders/:id', mockAuth, async (req: any, res) => {
     try {
       const order = await storage.getOrder(req.params.id);
       if (!order) {
@@ -124,58 +159,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Seed drinks data (development only)
-  app.post('/api/seed-drinks', async (req, res) => {
-    try {
-      const seedDrinks = [
-        {
-          name: "Classic Cola",
-          price: "200.00",
-          imageUrl: "https://images.unsplash.com/photo-1581098365948-6a5a912b7a49?w=400&h=600&fit=crop",
-          description: "Refreshing classic cola drink",
-        },
-        {
-          name: "Orange Fizz",
-          price: "180.00",
-          imageUrl: "https://images.unsplash.com/photo-1571613316887-6f8d5cbf7ef7?w=400&h=600&fit=crop",
-          description: "Zesty orange flavored soda",
-        },
-        {
-          name: "Lemon Splash",
-          price: "180.00",
-          imageUrl: "https://images.unsplash.com/photo-1625772299848-391b8a87eca4?w=400&h=600&fit=crop",
-          description: "Crisp lemon-lime refreshment",
-        },
-        {
-          name: "Power Energy",
-          price: "300.00",
-          imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=600&fit=crop",
-          description: "Boost your energy levels",
-        },
-        {
-          name: "Blue Cola",
-          price: "200.00",
-          imageUrl: "https://images.unsplash.com/photo-1629203851122-3726ecdf080e?w=400&h=600&fit=crop",
-          description: "Smooth blue cola experience",
-        },
-        {
-          name: "Golden Malt",
-          price: "250.00",
-          imageUrl: "https://images.unsplash.com/photo-1544145945-f90425340c7e?w=400&h=600&fit=crop",
-          description: "Rich malt beverage",
-        },
-      ];
-
-      for (const drinkData of seedDrinks) {
-        await storage.createDrink(drinkData);
-      }
-
-      res.json({ message: "Drinks seeded successfully" });
-    } catch (error) {
-      console.error("Error seeding drinks:", error);
-      res.status(500).json({ message: "Failed to seed drinks" });
-    }
-  });
+  // Mock drinks are already seeded in storage, no need for seed endpoint
 
   const httpServer = createServer(app);
   return httpServer;

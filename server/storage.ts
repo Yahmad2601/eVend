@@ -1,7 +1,4 @@
 import {
-  users,
-  drinks,
-  orders,
   type User,
   type UpsertUser,
   type Drink,
@@ -9,8 +6,72 @@ import {
   type Order,
   type InsertOrder,
 } from "@shared/schema";
-import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+
+// Mock data storage
+const mockUsers = new Map<string, User>();
+const mockDrinks = new Map<string, Drink>();
+const mockOrders = new Map<string, Order>();
+
+// Initialize mock drinks data
+const sampleDrinks: Drink[] = [
+  {
+    id: "drink-1",
+    name: "Classic Cola",
+    price: "200.00",
+    imageUrl: "https://images.unsplash.com/photo-1581098365948-6a5a912b7a49?w=400&h=600&fit=crop",
+    description: "Refreshing classic cola drink",
+    inStock: 10,
+    createdAt: new Date(),
+  },
+  {
+    id: "drink-2", 
+    name: "Orange Fizz",
+    price: "180.00",
+    imageUrl: "https://images.unsplash.com/photo-1571613316887-6f8d5cbf7ef7?w=400&h=600&fit=crop",
+    description: "Zesty orange flavored soda",
+    inStock: 8,
+    createdAt: new Date(),
+  },
+  {
+    id: "drink-3",
+    name: "Lemon Splash", 
+    price: "180.00",
+    imageUrl: "https://images.unsplash.com/photo-1625772299848-391b8a87eca4?w=400&h=600&fit=crop",
+    description: "Crisp lemon-lime refreshment",
+    inStock: 12,
+    createdAt: new Date(),
+  },
+  {
+    id: "drink-4",
+    name: "Power Energy",
+    price: "300.00", 
+    imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=600&fit=crop",
+    description: "Boost your energy levels",
+    inStock: 6,
+    createdAt: new Date(),
+  },
+  {
+    id: "drink-5",
+    name: "Blue Cola",
+    price: "200.00",
+    imageUrl: "https://images.unsplash.com/photo-1629203851122-3726ecdf080e?w=400&h=600&fit=crop", 
+    description: "Smooth blue cola experience",
+    inStock: 9,
+    createdAt: new Date(),
+  },
+  {
+    id: "drink-6",
+    name: "Golden Malt",
+    price: "250.00",
+    imageUrl: "https://images.unsplash.com/photo-1544145945-f90425340c7e?w=400&h=600&fit=crop",
+    description: "Rich malt beverage", 
+    inStock: 4,
+    createdAt: new Date(),
+  },
+];
+
+// Initialize sample drinks
+sampleDrinks.forEach(drink => mockDrinks.set(drink.id, drink));
 
 // Interface for storage operations
 export interface IStorage {
@@ -31,78 +92,92 @@ export interface IStorage {
   updateOrderStatus(orderId: string, status: string): Promise<void>;
 }
 
-export class DatabaseStorage implements IStorage {
+export class MockStorage implements IStorage {
   // User operations (IMPORTANT) these user operations are mandatory for Replit Auth.
   async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+    return mockUsers.get(id);
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          ...userData,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
+    const user: User = {
+      id: userData.id || `user-${Date.now()}`,
+      email: userData.email || null,
+      firstName: userData.firstName || null,
+      lastName: userData.lastName || null,
+      profileImageUrl: userData.profileImageUrl || null,
+      walletBalance: userData.walletBalance || '4180.20',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    mockUsers.set(user.id, user);
     return user;
   }
 
   async updateUserBalance(userId: string, newBalance: string): Promise<void> {
-    await db
-      .update(users)
-      .set({ 
-        walletBalance: newBalance,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, userId));
+    const user = mockUsers.get(userId);
+    if (user) {
+      user.walletBalance = newBalance;
+      user.updatedAt = new Date();
+      mockUsers.set(userId, user);
+    }
   }
 
   // Drink operations
   async getDrinks(): Promise<Drink[]> {
-    return await db.select().from(drinks).orderBy(drinks.name);
+    return Array.from(mockDrinks.values()).sort((a, b) => a.name.localeCompare(b.name));
   }
 
   async getDrink(id: string): Promise<Drink | undefined> {
-    const [drink] = await db.select().from(drinks).where(eq(drinks.id, id));
-    return drink;
+    return mockDrinks.get(id);
   }
 
   async createDrink(drinkData: InsertDrink): Promise<Drink> {
-    const [drink] = await db.insert(drinks).values(drinkData).returning();
+    const drink: Drink = {
+      id: `drink-${Date.now()}`,
+      name: drinkData.name,
+      price: drinkData.price,
+      imageUrl: drinkData.imageUrl,
+      description: drinkData.description || null,
+      inStock: drinkData.inStock || 10,
+      createdAt: new Date(),
+    };
+    mockDrinks.set(drink.id, drink);
     return drink;
   }
 
   // Order operations
   async createOrder(orderData: InsertOrder & { otp: string }): Promise<Order> {
-    const [order] = await db.insert(orders).values(orderData).returning();
+    const order: Order = {
+      id: `order-${Date.now()}`,
+      userId: orderData.userId,
+      drinkId: orderData.drinkId,
+      amount: orderData.amount,
+      paymentMethod: orderData.paymentMethod,
+      otp: orderData.otp,
+      status: 'pending',
+      createdAt: new Date(),
+    };
+    mockOrders.set(order.id, order);
     return order;
   }
 
   async getOrder(id: string): Promise<Order | undefined> {
-    const [order] = await db.select().from(orders).where(eq(orders.id, id));
-    return order;
+    return mockOrders.get(id);
   }
 
   async getUserOrders(userId: string): Promise<Order[]> {
-    return await db
-      .select()
-      .from(orders)
-      .where(eq(orders.userId, userId))
-      .orderBy(desc(orders.createdAt));
+    return Array.from(mockOrders.values())
+      .filter(order => order.userId === userId)
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
   }
 
   async updateOrderStatus(orderId: string, status: string): Promise<void> {
-    await db
-      .update(orders)
-      .set({ status })
-      .where(eq(orders.id, orderId));
+    const order = mockOrders.get(orderId);
+    if (order) {
+      order.status = status;
+      mockOrders.set(orderId, order);
+    }
   }
 }
 
-export const storage = new DatabaseStorage();
+export const storage = new MockStorage();

@@ -42,7 +42,7 @@ export default function Home() {
     data: drinks = [], 
     isLoading: isDrinksLoading,
     error: drinksError 
-  } = useQuery({
+  } = useQuery<Drink[]>({
     queryKey: ["/api/drinks"],
     enabled: !!user,
     retry: false,
