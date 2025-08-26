@@ -68,6 +68,7 @@ export const insertDrinkSchema = createInsertSchema(drinks).omit({
 
 export const insertOrderSchema = createInsertSchema(orders).omit({
   id: true,
+  userId: true, // userId will be added by backend from auth
   otp: true,
   createdAt: true,
   status: true,

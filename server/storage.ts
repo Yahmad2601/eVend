@@ -86,7 +86,7 @@ export interface IStorage {
   createDrink(drink: InsertDrink): Promise<Drink>;
   
   // Order operations
-  createOrder(order: InsertOrder & { otp: string }): Promise<Order>;
+  createOrder(order: InsertOrder & { userId: string; otp: string }): Promise<Order>;
   getOrder(id: string): Promise<Order | undefined>;
   getUserOrders(userId: string): Promise<Order[]>;
   updateOrderStatus(orderId: string, status: string): Promise<void>;
@@ -146,7 +146,7 @@ export class MockStorage implements IStorage {
   }
 
   // Order operations
-  async createOrder(orderData: InsertOrder & { otp: string }): Promise<Order> {
+  async createOrder(orderData: InsertOrder & { userId: string; otp: string }): Promise<Order> {
     const order: Order = {
       id: `order-${Date.now()}`,
       userId: orderData.userId,

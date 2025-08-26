@@ -7,9 +7,10 @@ import { apiRequest } from "@/lib/queryClient";
 import DrinkCard from "@/components/DrinkCard";
 import PaymentModal from "@/components/PaymentModal";
 import OTPDisplay from "@/components/OTPDisplay";
+import { ProfileDropdown, MenuDropdown } from "@/components/HeaderDropdown";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Menu, Settings, User } from "lucide-react";
+import { User } from "lucide-react";
 import type { Drink, Order } from "@shared/schema";
 
 export default function Home() {
@@ -148,20 +149,9 @@ export default function Home() {
       <div className="bg-gradient-to-r from-primary to-secondary text-white">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
-            <Menu className="text-white w-6 h-6 cursor-pointer" data-testid="button-menu" />
+            <MenuDropdown />
             <h1 className="text-xl font-semibold" data-testid="text-header-title">PLACE ORDER</h1>
-            <div className="flex items-center space-x-3">
-              <Settings className="text-white w-6 h-6 cursor-pointer" data-testid="button-settings" />
-              <Button
-                onClick={handleLogout}
-                variant="ghost"
-                size="sm"
-                className="text-white hover:bg-white/20"
-                data-testid="button-logout"
-              >
-                Logout
-              </Button>
-            </div>
+            <ProfileDropdown user={user} onLogout={handleLogout} />
           </div>
         </div>
         

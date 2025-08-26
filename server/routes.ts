@@ -113,7 +113,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create order
       const order = await storage.createOrder({
-        ...orderData,
+        drinkId: orderData.drinkId,
+        amount: orderData.amount,
+        paymentMethod: orderData.paymentMethod,
         userId,
         otp,
       });

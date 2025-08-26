@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Wallet, CreditCard, X } from "lucide-react";
 import type { Drink, User } from "@shared/schema";
@@ -33,6 +33,9 @@ export default function PaymentModal({
           <DialogTitle className="text-center text-xl font-semibold text-gray-800">
             Complete Payment
           </DialogTitle>
+          <DialogDescription className="text-center text-gray-600">
+            Choose your payment method to complete your order
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6">
