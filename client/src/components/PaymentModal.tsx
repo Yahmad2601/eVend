@@ -57,18 +57,27 @@ export default function PaymentModal({
             <Button
               onClick={() => onPayment('wallet')}
               disabled={!hasSufficientBalance || isProcessing}
-              className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary/90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]"
               data-testid="button-pay-wallet"
             >
-              <Wallet className="mr-2 w-4 h-4" />
-              {hasSufficientBalance ? 'Pay with Wallet' : 'Insufficient Balance'}
+              {isProcessing ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Processing...</span>
+                </div>
+              ) : (
+                <>
+                  <Wallet className="mr-2 w-4 h-4" />
+                  {hasSufficientBalance ? 'Pay with Wallet' : 'Insufficient Balance'}
+                </>
+              )}
             </Button>
             
             <Button
               onClick={() => onPayment('card')}
               disabled={isProcessing}
               variant="outline"
-              className="w-full bg-gray-100 text-gray-800 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors border-gray-300"
+              className="w-full bg-gray-100 text-gray-800 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] border-gray-300 min-h-[48px]"
               data-testid="button-pay-card"
             >
               <CreditCard className="mr-2 w-4 h-4" />

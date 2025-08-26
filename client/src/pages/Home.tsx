@@ -60,6 +60,7 @@ export default function Home() {
     onSuccess: (order: Order) => {
       setCurrentOrder(order);
       setShowPaymentModal(false);
+      setShowCardForm(false);
       setShowOTP(true);
       // Refresh user data to update wallet balance
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
@@ -183,7 +184,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-primary to-secondary text-white">
+      <div className="bg-primary text-white">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <MenuDropdown />

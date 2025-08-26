@@ -109,9 +109,15 @@
   }
 }
 
-/* Custom gradients for eVend branding */
-.evend-gradient {
-  background: linear-gradient(135deg, var(--primary), var(--secondary), theme('colors.blue.600'));
+/* Custom patterns for eVend branding */
+.evend-pattern {
+  background-color: hsl(240 6% 25%);
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 30px 30px, 45px 45px, 60px 60px;
+  background-position: 0 0, 0 0, 0 0;
 }
 
 /* Smooth transitions for mobile interactions */

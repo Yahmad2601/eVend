@@ -10,7 +10,7 @@ export default function OTPDisplay({ order, onBackToMain }: OTPDisplayProps) {
   const otpDigits = order.otp.split('');
 
   return (
-    <div className="fixed inset-0 z-50 bg-gradient-to-br from-primary via-secondary to-gray-700">
+    <div className="fixed inset-0 z-50 evend-pattern">
       <div className="flex flex-col items-center justify-center h-full px-8 text-white text-center">
         <div className="mb-8">
           <h1 className="text-5xl font-bold mb-2">

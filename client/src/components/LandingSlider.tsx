@@ -102,7 +102,7 @@ export default function LandingSlider({ onStart }: LandingSliderProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-gradient-to-br from-primary via-secondary to-gray-700 overflow-hidden">
+    <div className="fixed inset-0 z-50 evend-pattern overflow-hidden">
       <div
         ref={sliderRef}
         className="flex h-full transition-transform duration-500 ease-in-out cursor-grab active:cursor-grabbing"

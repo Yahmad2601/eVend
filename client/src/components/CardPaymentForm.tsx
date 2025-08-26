@@ -86,7 +86,7 @@ export default function CardPaymentForm({
     <div className="fixed inset-0 z-50 bg-background">
       <div className="flex flex-col h-full">
         {/* Header */}
-        <div className="bg-gradient-to-r from-primary to-secondary text-white p-6">
+        <div className="bg-primary text-white p-6">
           <div className="flex items-center space-x-4">
             <Button
               onClick={onBack}
@@ -102,8 +102,8 @@ export default function CardPaymentForm({
         </div>
 
         {/* Content */}
-        <div className="flex-1 p-6 bg-gray-50">
-          <div className="max-w-md mx-auto space-y-6">
+        <div className="flex-1 p-6 bg-gray-50 overflow-y-auto">
+          <div className="max-w-md mx-auto space-y-6 pb-8">
             {/* Order Summary */}
             <Card>
               <CardContent className="p-4">
@@ -191,10 +191,17 @@ export default function CardPaymentForm({
                   <Button
                     type="submit"
                     disabled={!isFormValid() || isProcessing}
-                    className="w-full bg-primary hover:bg-primary/90 text-white py-3 font-semibold disabled:opacity-50"
+                    className="w-full bg-primary hover:bg-primary/90 text-white py-3 font-semibold disabled:opacity-50 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] min-h-[48px]"
                     data-testid="button-complete-payment"
                   >
-                    {isProcessing ? 'Processing...' : `Pay ₦ ${drink.price}`}
+                    {isProcessing ? (
+                      <div className="flex items-center justify-center space-x-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Processing...</span>
+                      </div>
+                    ) : (
+                      `Pay ₦ ${drink.price}`
+                    )}
                   </Button>
                 </form>
               </CardContent>
