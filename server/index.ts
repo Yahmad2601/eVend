@@ -1,6 +1,13 @@
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { registerRoutes } from "./routes";
+import { webcrypto } from "node:crypto";
+if (!globalThis.crypto?.getRandomValues) {
+  // Provide Web Crypto API in older Node versions
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  globalThis.crypto = webcrypto as unknown as typeof globalThis.crypto;
+}
+
 import { setupVite, serveStatic, log } from "./vite";
 import { createServer } from "http"; // ✅ import HTTP server
 
@@ -77,6 +84,6 @@ const httpServer = createServer(app);
 
   const port = parseInt(process.env.PORT || "3000", 10);
   httpServer.listen(port, "127.0.0.1", () => {
-    log(`serving on port ${port}jvhg`);
+    log(`serving on port ${port}`);
   });
 })();
