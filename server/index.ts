@@ -18,6 +18,7 @@ declare module "express-session" {
       step: number;
     };
     authToken?: string;
+    user?: any;
   }
 }
 

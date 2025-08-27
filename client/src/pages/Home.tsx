@@ -18,7 +18,7 @@ export default function Home() {
   const { user, isLoading: isAuthLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   const [selectedDrink, setSelectedDrink] = useState<Drink | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showCardForm, setShowCardForm] = useState(false);
@@ -41,10 +41,10 @@ export default function Home() {
   }, [user, isAuthLoading, toast]);
 
   // Fetch drinks
-  const { 
-    data: drinks = [], 
+  const {
+    data: drinks = [],
     isLoading: isDrinksLoading,
-    error: drinksError 
+    error: drinksError,
   } = useQuery<Drink[]>({
     queryKey: ["/api/drinks"],
     enabled: !!user,
@@ -53,8 +53,12 @@ export default function Home() {
 
   // Create order mutation
   const createOrderMutation = useMutation({
-    mutationFn: async (orderData: { drinkId: string; amount: string; paymentMethod: 'wallet' | 'card' }) => {
-      const response = await apiRequest('POST', '/api/orders', orderData);
+    mutationFn: async (orderData: {
+      drinkId: string;
+      amount: string;
+      paymentMethod: "wallet" | "card";
+    }) => {
+      const response = await apiRequest("POST", "/api/orders", orderData);
       return await response.json();
     },
     onSuccess: (order: Order) => {
@@ -82,12 +86,13 @@ export default function Home() {
         }, 500);
         return;
       }
-      
+
       let errorMessage = "Payment failed. Please try again.";
       if (error.message.includes("Insufficient")) {
-        errorMessage = "Insufficient wallet balance. Please use card payment or top up your wallet.";
+        errorMessage =
+          "Insufficient wallet balance. Please use card payment or top up your wallet.";
       }
-      
+
       toast({
         title: "Payment Failed",
         description: errorMessage,
@@ -101,15 +106,15 @@ export default function Home() {
     setShowPaymentModal(true);
   };
 
-  const handlePayment = async (paymentMethod: 'wallet' | 'card') => {
+  const handlePayment = async (paymentMethod: "wallet" | "card") => {
     if (!selectedDrink) return;
-    
-    if (paymentMethod === 'card') {
+
+    if (paymentMethod === "card") {
       setShowPaymentModal(false);
       setShowCardForm(true);
       return;
     }
-    
+
     createOrderMutation.mutate({
       drinkId: selectedDrink.id,
       amount: selectedDrink.price,
@@ -119,11 +124,11 @@ export default function Home() {
 
   const handleCardPaymentComplete = () => {
     if (!selectedDrink) return;
-    
+
     createOrderMutation.mutate({
       drinkId: selectedDrink.id,
       amount: selectedDrink.price,
-      paymentMethod: 'card',
+      paymentMethod: "card",
     });
   };
 
@@ -141,7 +146,7 @@ export default function Home() {
   };
 
   const handleLogout = () => {
-    window.location.href = '/api/logout';
+    window.location.href = "/api/logout";
   };
 
   // Handle loading and error states
@@ -188,11 +193,16 @@ export default function Home() {
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <MenuDropdown />
-            <h1 className="text-xl font-semibold" data-testid="text-header-title">PLACE ORDER</h1>
+            <h1
+              className="text-xl font-semibold"
+              data-testid="text-header-title"
+            >
+              PLACE ORDER
+            </h1>
             <ProfileDropdown user={user} onLogout={handleLogout} />
           </div>
         </div>
-        
+
         {/* User Balance Section */}
         <div className="px-6 pb-6">
           <div className="flex items-center space-x-4">
@@ -210,7 +220,7 @@ export default function Home() {
             <div>
               <p className="text-blue-100 text-sm">BALANCE</p>
               <p className="text-2xl font-bold" data-testid="text-user-balance">
-                ₦ {user.walletBalance || '0.00'}
+                ₦ {user.walletBalance || "0.00"}
               </p>
             </div>
           </div>
@@ -233,7 +243,9 @@ export default function Home() {
           <div className="text-center py-12">
             <p className="text-gray-600 mb-4">Failed to load drinks</p>
             <Button
-              onClick={() => queryClient.invalidateQueries({ queryKey: ["/api/drinks"] })}
+              onClick={() =>
+                queryClient.invalidateQueries({ queryKey: ["/api/drinks"] })
+              }
               variant="outline"
               data-testid="button-retry-drinks"
             >

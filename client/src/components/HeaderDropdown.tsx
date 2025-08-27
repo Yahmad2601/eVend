@@ -1,14 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { 
-  Menu, 
-  Settings, 
-  User, 
-  LogOut, 
-  History, 
-  Wallet, 
+import {
+  Menu,
+  Settings,
+  User,
+  LogOut,
+  History,
+  Wallet,
   HelpCircle,
-  ChevronDown 
+  ChevronDown,
 } from "lucide-react";
 import type { User as UserType } from "@shared/schema";
 
@@ -23,13 +23,16 @@ export function ProfileDropdown({ user, onLogout }: ProfileDropdownProps) {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
@@ -53,60 +56,73 @@ export function ProfileDropdown({ user, onLogout }: ProfileDropdownProps) {
               <User className="text-white w-5 h-5" />
             </div>
           )}
-          <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown
+            className={`w-4 h-4 transition-transform ${
+              isOpen ? "rotate-180" : ""
+            }`}
+          />
         </div>
       </Button>
 
       {isOpen && (
         <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border z-50">
           <div className="p-4 border-b">
-            <p className="font-medium text-gray-900" data-testid="text-profile-name">
+            <p
+              className="font-medium text-gray-900"
+              data-testid="text-profile-name"
+            >
               {user.firstName} {user.lastName}
             </p>
-            <p className="text-sm text-gray-600" data-testid="text-profile-email">
+            <p
+              className="text-sm text-gray-600"
+              data-testid="text-profile-email"
+            >
               {user.email}
             </p>
-            <p className="text-sm text-primary font-semibold mt-1" data-testid="text-profile-balance">
+            <p
+              className="text-sm text-primary font-semibold mt-1"
+              data-testid="text-profile-balance"
+            >
               Balance: ₦ {user.walletBalance}
             </p>
           </div>
-          
+
           <div className="py-2">
-            <button 
-              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3"
+            <button
+              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3 text-gray-500"
               data-testid="button-profile-view"
             >
-              <User className="w-4 h-4 text-gray-500" />
+              <User className="w-4 h-4 " />
               <span>View Profile</span>
             </button>
-            
-            <button 
-              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3"
+
+            <button
+              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3 text-gray-500"
               data-testid="button-wallet-manage"
             >
-              <Wallet className="w-4 h-4 text-gray-500" />
+              <Wallet className="w-4 h-4 " />
               <span>Manage Wallet</span>
             </button>
-            
-            <button 
-              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3"
+
+            <button
+              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3 text-gray-500"
               data-testid="button-order-history"
             >
-              <History className="w-4 h-4 text-gray-500" />
+              <History className="w-4 h-4 " />
               <span>Order History</span>
             </button>
-            
-            <button 
-              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3"
+
+            <button
+              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3 text-gray-500"
               data-testid="button-settings"
             >
-              <Settings className="w-4 h-4 text-gray-500" />
+              <Settings className="w-4 h-4 " />
               <span>Settings</span>
             </button>
-            
+
             <hr className="my-2" />
-            
-            <button 
+
+            <button
               onClick={onLogout}
               className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3 text-red-600"
               data-testid="button-logout-dropdown"
@@ -131,14 +147,17 @@ export function MenuDropdown({ onClose }: MenuDropdownProps) {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
         onClose?.();
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
 
   return (
@@ -156,41 +175,41 @@ export function MenuDropdown({ onClose }: MenuDropdownProps) {
       {isOpen && (
         <div className="absolute left-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border z-50">
           <div className="py-2">
-            <button 
+            <button
               className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3"
               data-testid="button-menu-home"
             >
               <span>🏠</span>
               <span>Home</span>
             </button>
-            
-            <button 
+
+            <button
               className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3"
               data-testid="button-menu-drinks"
             >
               <span>🥤</span>
               <span>All Drinks</span>
             </button>
-            
-            <button 
+
+            <button
               className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3"
               data-testid="button-menu-orders"
             >
               <History className="w-4 h-4 text-gray-500" />
               <span>My Orders</span>
             </button>
-            
-            <button 
+
+            <button
               className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3"
               data-testid="button-menu-wallet"
             >
               <Wallet className="w-4 h-4 text-gray-500" />
               <span>Wallet</span>
             </button>
-            
+
             <hr className="my-2" />
-            
-            <button 
+
+            <button
               className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3"
               data-testid="button-menu-help"
             >

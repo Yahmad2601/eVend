@@ -4,39 +4,43 @@ import { storage } from "./storage";
 import { insertOrderSchema } from "@shared/schema";
 import { z } from "zod";
 
-// Mock authentication middleware
-const mockAuth = async (req: any, res: any, next: any) => {
-  // Create a mock user session
-  req.user = {
-    claims: {
-      sub: 'mock-user-123',
-      email: 'student@campus.edu',
-      first_name: 'Test',
-      last_name: 'Student',
-      profile_image_url: null,
-    }
-  };
-  next();
+// Authentication middleware using session
+const requireAuth = (req: any, res: any, next: any) => {
+  if (req.session?.user) {
+    req.user = req.session.user;
+    return next();
+  }
+  res.status(401).json({ message: "Unauthorized" });
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Mock login route
-  app.get('/api/login', (req, res) => {
-    // Simulate login by redirecting to home
-    res.redirect('/');
+  // Login route that creates a mock session and redirects to /home
+  app.get("/api/login", (req: any, res) => {
+    req.session.user = {
+      claims: {
+        sub: "mock-user-123",
+        email: "student@campus.edu",
+        first_name: "Test",
+        last_name: "Student",
+        profile_image_url: null,
+      },
+    };
+    res.redirect("/home");
   });
 
-  // Mock logout route  
-  app.get('/api/logout', (req, res) => {
-    res.redirect('/');
+  // Logout route clears the session
+  app.get("/api/logout", (req: any, res) => {
+    req.session.destroy(() => {
+      res.redirect("/");
+    });
   });
 
   // Auth routes
-  app.get('/api/auth/user', mockAuth, async (req: any, res) => {
+  app.get("/api/auth/user", requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       let user = await storage.getUser(userId);
-      
+
       // Create mock user if doesn't exist
       if (!user) {
         user = await storage.upsertUser({
@@ -45,10 +49,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           firstName: req.user.claims.first_name,
           lastName: req.user.claims.last_name,
           profileImageUrl: req.user.claims.profile_image_url,
-          walletBalance: '4180.20'
+          walletBalance: "4180.20",
         });
       }
-      
+
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -57,7 +61,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Drinks routes
-  app.get('/api/drinks', async (req, res) => {
+  app.get("/api/drinks", async (req, res) => {
     try {
       const drinks = await storage.getDrinks();
       res.json(drinks);
@@ -67,7 +71,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/drinks/:id', async (req, res) => {
+  app.get("/api/drinks/:id", async (req, res) => {
     try {
       const drink = await storage.getDrink(req.params.id);
       if (!drink) {
@@ -81,28 +85,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Orders routes
-  app.post('/api/orders', mockAuth, async (req: any, res) => {
+  app.post("/api/orders", requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const orderData = insertOrderSchema.parse(req.body);
-      
+
       // Get user and drink details
       const user = await storage.getUser(userId);
       const drink = await storage.getDrink(orderData.drinkId);
-      
+
       if (!user || !drink) {
         return res.status(404).json({ message: "User or drink not found" });
       }
 
       // Check if user has sufficient balance for wallet payment
-      if (orderData.paymentMethod === 'wallet') {
-        const currentBalance = parseFloat(user.walletBalance || '0');
+      if (orderData.paymentMethod === "wallet") {
+        const currentBalance = parseFloat(user.walletBalance || "0");
         const orderAmount = parseFloat(orderData.amount);
-        
+
         if (currentBalance < orderAmount) {
-          return res.status(400).json({ message: "Insufficient wallet balance" });
+          return res
+            .status(400)
+            .json({ message: "Insufficient wallet balance" });
         }
-        
+
         // Deduct amount from wallet
         const newBalance = (currentBalance - orderAmount).toFixed(2);
         await storage.updateUserBalance(userId, newBalance);
@@ -110,7 +116,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Generate 4-digit OTP
       const otp = Math.floor(1000 + Math.random() * 9000).toString();
-      
+
       // Create order
       const order = await storage.createOrder({
         drinkId: orderData.drinkId,
@@ -123,14 +129,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(order);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid order data", errors: error.errors });
+        return res
+          .status(400)
+          .json({ message: "Invalid order data", errors: error.errors });
       }
       console.error("Error creating order:", error);
       res.status(500).json({ message: "Failed to create order" });
     }
   });
 
-  app.get('/api/orders', mockAuth, async (req: any, res) => {
+  app.get("/api/orders", requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const orders = await storage.getUserOrders(userId);
@@ -141,19 +149,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/orders/:id', mockAuth, async (req: any, res) => {
+  app.get("/api/orders/:id", requireAuth, async (req: any, res) => {
     try {
       const order = await storage.getOrder(req.params.id);
       if (!order) {
         return res.status(404).json({ message: "Order not found" });
       }
-      
+
       // Check if the order belongs to the authenticated user
       const userId = req.user.claims.sub;
       if (order.userId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
-      
+
       res.json(order);
     } catch (error) {
       console.error("Error fetching order:", error);
