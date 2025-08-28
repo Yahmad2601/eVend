@@ -176,7 +176,7 @@ export function MenuDropdown({ onClose }: MenuDropdownProps) {
         <div className="absolute left-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border z-50">
           <div className="py-2">
             <button
-              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3"
+              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3 text-gray-500"
               data-testid="button-menu-home"
             >
               <span>🏠</span>
@@ -184,7 +184,7 @@ export function MenuDropdown({ onClose }: MenuDropdownProps) {
             </button>
 
             <button
-              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3"
+              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3 text-gray-500"
               data-testid="button-menu-drinks"
             >
               <span>🥤</span>
@@ -192,7 +192,7 @@ export function MenuDropdown({ onClose }: MenuDropdownProps) {
             </button>
 
             <button
-              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3"
+              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3 text-gray-500"
               data-testid="button-menu-orders"
             >
               <History className="w-4 h-4 text-gray-500" />
@@ -200,7 +200,7 @@ export function MenuDropdown({ onClose }: MenuDropdownProps) {
             </button>
 
             <button
-              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3"
+              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3 text-gray-500"
               data-testid="button-menu-wallet"
             >
               <Wallet className="w-4 h-4 text-gray-500" />
@@ -210,10 +210,10 @@ export function MenuDropdown({ onClose }: MenuDropdownProps) {
             <hr className="my-2" />
 
             <button
-              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3"
+              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3 text-red-500"
               data-testid="button-menu-help"
             >
-              <HelpCircle className="w-4 h-4 text-gray-500" />
+              <HelpCircle className="w-4 h-4 text-red-500" />
               <span>Help & Support</span>
             </button>
           </div>

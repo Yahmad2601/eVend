@@ -1,109 +1,46 @@
-import { useState, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Coffee } from "lucide-react";
-import { motion } from "framer-motion";
+import {
+  ArrowRight,
+  ShoppingCart,
+  CreditCard,
+  CheckCircle,
+} from "lucide-react";
+import { motion, PanInfo } from "framer-motion";
 
 export default function LandingSlider() {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [startX, setStartX] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const sliderRef = useRef<HTMLDivElement>(null);
   const totalSlides = 3;
+  const slideInterval = 3000; // 3 seconds
 
   const slides = [
     {
-      icon: <Coffee className="w-16 h-16 text-white" />,
-      title:
-        "Input the OTP given to you on the eVending machine and receive your drink",
-      dots: [true, false, false],
+      icon: <ShoppingCart className="w-16 h-16 text-white" />,
+      title: "Select your favorite drink from the menu.",
     },
     {
-      icon: (
-        <div className="flex space-x-3 justify-center">
-          {[1, 2, 3, 4].map((num) => (
-            <div
-              key={num}
-              className="w-12 h-12 bg-white rounded-lg flex items-center justify-center"
-            >
-              <span className="text-2xl text-primary">•</span>
-            </div>
-          ))}
-        </div>
-      ),
-      title: "Make Payment and receive your 4 digits OTP",
-      dots: [false, true, false],
+      icon: <CreditCard className="w-16 h-16 text-white" />,
+      title: "Pay easily using your wallet or card.",
     },
     {
-      icon: (
-        <div className="grid grid-cols-4 gap-2 mb-8">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={i}
-              className="w-10 h-12 bg-white bg-opacity-20 rounded"
-            ></div>
-          ))}
-        </div>
-      ),
-      title: "Select the drink you desire!",
-      dots: [false, false, true],
-      showButton: true,
+      icon: <CheckCircle className="w-16 h-16 text-white" />,
+      title: "Get an OTP to dispense your drink instantly!",
     },
   ];
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setStartX(e.touches[0].clientX);
-    setIsDragging(true);
-  };
+  // Effect for auto-sliding
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prevSlide) => (prevSlide + 1) % totalSlides);
+    }, slideInterval);
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) return;
-    e.preventDefault();
-  };
+    // Clean up the interval on component unmount or when currentSlide changes
+    return () => clearInterval(timer);
+  }, [currentSlide, totalSlides]);
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!isDragging) return;
-    setIsDragging(false);
-
-    const endX = e.changedTouches[0].clientX;
-    const diffX = startX - endX;
-    const threshold = 50;
-
-    if (Math.abs(diffX) > threshold) {
-      if (diffX > 0 && currentSlide < totalSlides - 1) {
-        setCurrentSlide(currentSlide + 1);
-      } else if (diffX < 0 && currentSlide > 0) {
-        setCurrentSlide(currentSlide - 1);
-      }
-    }
-  };
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setStartX(e.clientX);
-    setIsDragging(true);
-    e.preventDefault();
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    e.preventDefault();
-  };
-
-  const handleMouseUp = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    setIsDragging(false);
-
-    const endX = e.clientX;
-    const diffX = startX - endX;
-    const threshold = 50;
-
-    if (Math.abs(diffX) > threshold) {
-      if (diffX > 0 && currentSlide < totalSlides - 1) {
-        setCurrentSlide(currentSlide + 1);
-      } else if (diffX < 0 && currentSlide > 0) {
-        setCurrentSlide(currentSlide - 1);
-      }
-    }
+  const handleSlideChange = (index: number) => {
+    setCurrentSlide(index);
   };
 
   const handleStart = () => {
@@ -111,82 +48,77 @@ export default function LandingSlider() {
     window.location.href = "/login";
   };
 
+  // Handler for manual drag/swipe
+  const handleDragEnd = (
+    event: MouseEvent | TouchEvent | PointerEvent,
+    info: PanInfo
+  ) => {
+    const { offset, velocity } = info;
+    const swipeThreshold = 50;
+
+    if (offset.x < -swipeThreshold || velocity.x < -500) {
+      // Swiped left
+      setCurrentSlide((prev) => (prev + 1) % totalSlides);
+    } else if (offset.x > swipeThreshold || velocity.x > 500) {
+      // Swiped right
+      setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 evend-pattern overflow-hidden">
+    <div className="fixed inset-0 z-50 evend-pattern overflow-hidden flex flex-col justify-center items-center p-4">
+      <div className="text-center mb-8">
+        <h1 className="text-5xl font-bold text-white mb-2">eVend</h1>
+        <p className="text-white/80 text-lg">
+          Your quick stop for refreshing drinks.
+        </p>
+      </div>
+
       <motion.div
-        ref={sliderRef}
-        className="flex h-full cursor-grab active:cursor-grabbing"
-        style={{ width: `${totalSlides * 100}%` }}
-        animate={{ x: `-${currentSlide * (100 / totalSlides)}%` }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        data-testid="landing-slider"
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        onDragEnd={handleDragEnd}
+        className="relative w-full max-w-sm h-64 overflow-hidden cursor-grab active:cursor-grabbing"
       >
         {slides.map((slide, index) => (
           <motion.div
             key={index}
-            className="w-1/3 flex flex-col items-center justify-center px-8 text-white text-center relative select-none"
+            className="absolute w-full h-full flex flex-col items-center justify-center text-center text-white p-4"
+            initial={{ x: "100%", opacity: 0 }}
             animate={{
-              scale: index === currentSlide ? 1 : 0.9,
+              x: `${(index - currentSlide) * 100}%`,
               opacity: index === currentSlide ? 1 : 0.5,
+              scale: index === currentSlide ? 1 : 0.95,
             }}
-            transition={{ duration: 0.5 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
           >
-            <div className="mb-8">
-              <h1 className="text-5xl font-bold mb-2">
-                <span className="text-white">e</span>
-                <span className="text-gray-200">v</span>
-                <span className="text-gray-300">E</span>
-                <span className="text-gray-200">N</span>
-                <span className="text-white">D</span>
-              </h1>
-            </div>
-
-            <div className="mb-8 flex items-center justify-center min-h-[120px]">
-              {slide.icon}
-            </div>
-
-            <h2 className="text-2xl font-semibold mb-4 leading-tight max-w-xs">
+            <div className="mb-4">{slide.icon}</div>
+            <h2 className="text-xl font-semibold leading-tight">
               {slide.title}
             </h2>
-
-            {slide.showButton && (
-              <Button
-                onClick={handleStart}
-                disabled={isRedirecting}
-                className="absolute bottom-8 right-8 bg-white text-primary hover:bg-gray-100 rounded-full px-6 py-3 font-semibold shadow-lg"
-                data-testid="button-start"
-              >
-                {isRedirecting ? (
-                  "Redirecting..."
-                ) : (
-                  <>
-                    START <ArrowRight className="ml-2 w-4 h-4" />
-                  </>
-                )}
-              </Button>
-            )}
-
-            <div className="absolute bottom-32">
-              <div className="flex space-x-2">
-                {slide.dots.map((active, dotIndex) => (
-                  <div
-                    key={dotIndex}
-                    className={`w-3 h-3 rounded-full ${
-                      active ? "bg-white" : "bg-white bg-opacity-40"
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
           </motion.div>
         ))}
       </motion.div>
+
+      <div className="flex space-x-3 my-8">
+        {slides.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => handleSlideChange(index)}
+            className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+              currentSlide === index ? "bg-white scale-125" : "bg-white/40"
+            }`}
+          />
+        ))}
+      </div>
+
+      <Button
+        onClick={handleStart}
+        disabled={isRedirecting}
+        className="bg-white text-primary hover:bg-gray-100 h-12 px-8 font-bold shadow-lg text-base"
+      >
+        {isRedirecting ? "Loading..." : "GET STARTED"}
+      </Button>
     </div>
   );
 }

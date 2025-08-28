@@ -1,103 +1,36 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: hsl(0 0% 98%);
-  --foreground: hsl(240 10% 15%);
+  /* WhatsApp Inspired Palette */
+  --background: hsl(78 20% 96%);
+  /* Light, slightly green background */
+  --foreground: hsl(0 0% 20%);
   --card: hsl(0 0% 100%);
-  --card-foreground: hsl(240 10% 15%);
+  --card-foreground: hsl(0 0% 20%);
   --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(240 10% 15%);
-  /* Updated color palette inspired by dark Bybit and vibrant Snapchat themes */
-  --primary: hsl(45 95% 55%);
-  --primary-foreground: hsl(0 0% 0%);
-  --secondary: hsl(240 5% 65%);
-  --secondary-foreground: hsl(0 0% 98%);
-  --muted: hsl(240 5% 96%);
-  --muted-foreground: hsl(240 4% 46%);
-  --accent: hsl(52 100% 50%);
-  --accent-foreground: hsl(0 0% 0%);
-  --destructive: hsl(0 84% 60%);
-  --destructive-foreground: hsl(0 0% 98%);
-  --border: hsl(240 6% 90%);
-  --input: hsl(240 6% 97%);
-  --ring: hsl(240 6% 25%);
-  --chart-1: hsl(238 76% 60%);
-  --chart-2: hsl(159.7826 100% 36.0784%);
-  --chart-3: hsl(43 96% 56%);
-  --chart-4: hsl(147.1429 78.5047% 41.9608%);
-  --chart-5: hsl(341.4894 75.2000% 50.9804%);
-  --sidebar: hsl(180 6.6667% 97.0588%);
-  --sidebar-foreground: hsl(210 25% 7.8431%);
-  --sidebar-primary: hsl(238 76% 60%);
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(211.5789 51.3514% 92.7451%);
-  --sidebar-accent-foreground: hsl(238 76% 60%);
-  --sidebar-border: hsl(205.0000 25.0000% 90.5882%);
-  --sidebar-ring: hsl(238 76% 60%);
-  --font-sans: 'Inter', 'Open Sans', sans-serif;
-  --font-serif: Georgia, serif;
-  --font-mono: Menlo, monospace;
-  --radius: 1.3rem;
-  --shadow-2xs: 0px 2px 0px 0px hsl(238 76% 60% / 0.05);
-  --shadow-xs: 0px 2px 0px 0px hsl(238 76% 60% / 0.05);
-  --shadow-sm: 0px 2px 0px 0px hsl(238 76% 60% / 0.05), 0px 1px 2px -1px hsl(238 76% 60% / 0.1);
-  --shadow: 0px 2px 0px 0px hsl(238 76% 60% / 0.05), 0px 1px 2px -1px hsl(238 76% 60% / 0.1);
-  --shadow-md: 0px 2px 0px 0px hsl(238 76% 60% / 0.05), 0px 2px 4px -1px hsl(238 76% 60% / 0.1);
-  --shadow-lg: 0px 2px 0px 0px hsl(238 76% 60% / 0.05), 0px 4px 6px -1px hsl(238 76% 60% / 0.1);
-  --shadow-xl: 0px 2px 0px 0px hsl(238 76% 60% / 0.05), 0px 8px 10px -1px hsl(238 76% 60% / 0.1);
-  --shadow-2xl: 0px 2px 0px 0px hsl(238 76% 60% / 0.05);
-  --tracking-normal: 0em;
-  --spacing: 0.25rem;
-}
-
-.dark {
-  --background: hsl(222 30% 10%);
-  --foreground: hsl(0 0% 98%);
-  --card: hsl(222 25% 12%);
-  --card-foreground: hsl(0 0% 98%);
-  --popover: hsl(222 25% 12%);
-  --popover-foreground: hsl(0 0% 98%);
-  --primary: hsl(222 85% 66%);
+  --popover-foreground: hsl(0 0% 20%);
+  --primary: hsl(145 63% 49%);
+  /* WhatsApp Green: #25D366 */
   --primary-foreground: hsl(0 0% 100%);
-  --secondary: hsl(162 73% 56%);
-  --secondary-foreground: hsl(222 30% 10%);
-  --muted: hsl(222 25% 18%);
-  --muted-foreground: hsl(222 10% 70%);
-  --accent: hsl(45 100% 51%);
-  --accent-foreground: hsl(222 30% 10%);
-  --destructive: hsl(0 62% 50%);
-  --destructive-foreground: hsl(0 0% 95%);
-  --border: hsl(222 25% 18%);
-  --input: hsl(222 25% 18%);
-  --ring: hsl(222 85% 66%);
-  --chart-1: hsl(238 76% 60%);
-  --chart-2: hsl(159.7826 100% 36.0784%);
-  --chart-3: hsl(43 96% 56%);
-  --chart-4: hsl(147.1429 78.5047% 41.9608%);
-  --chart-5: hsl(341.4894 75.2000% 50.9804%);
-  --sidebar: hsl(228 9.8039% 10%);
-  --sidebar-foreground: hsl(0 0% 85.0980%);
-  --sidebar-primary: hsl(238 76% 60%);
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(205.7143 70% 7.8431%);
-  --sidebar-accent-foreground: hsl(238 76% 60%);
-  --sidebar-border: hsl(205.7143 15.7895% 26.0784%);
-  --sidebar-ring: hsl(238 76% 60%);
-  --font-sans: 'Inter', 'Open Sans', sans-serif;
-  --font-serif: Georgia, serif;
-  --font-mono: Menlo, monospace;
-  --radius: 1.3rem;
-  --shadow-2xs: 0px 2px 0px 0px hsl(238 76% 60% / 0.05);
-  --shadow-xs: 0px 2px 0px 0px hsl(238 76% 60% / 0.05);
-  --shadow-sm: 0px 2px 0px 0px hsl(238 76% 60% / 0.05), 0px 1px 2px -1px hsl(238 76% 60% / 0.1);
-  --shadow: 0px 2px 0px 0px hsl(238 76% 60% / 0.05), 0px 1px 2px -1px hsl(238 76% 60% / 0.1);
-  --shadow-md: 0px 2px 0px 0px hsl(238 76% 60% / 0.05), 0px 2px 4px -1px hsl(238 76% 60% / 0.1);
-  --shadow-lg: 0px 2px 0px 0px hsl(238 76% 60% / 0.05), 0px 4px 6px -1px hsl(238 76% 60% / 0.1);
-  --shadow-xl: 0px 2px 0px 0px hsl(238 76% 60% / 0.05), 0px 8px 10px -1px hsl(238 76% 60% / 0.1);
-  --shadow-2xl: 0px 2px 0px 0px hsl(238 76% 60% / 0.05);
+  --secondary: hsl(174 72% 38%);
+  /* WhatsApp Teal: #075E54 */
+  --secondary-foreground: hsl(0 0% 100%);
+  --muted: hsl(210 40% 90%);
+  --muted-foreground: hsl(210 10% 45%);
+  --accent: hsl(203 92% 53%);
+  /* Blue for links/notifications */
+  --accent-foreground: hsl(0 0% 100%);
+  --destructive: hsl(0 84% 60%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(210 20% 88%);
+  --input: hsl(0 0% 100%);
+  --ring: hsl(145 63% 49%);
+  --radius: 0.75rem;
+  --font-sans: 'Roboto', sans-serif;
 }
 
 @layer base {
@@ -107,50 +40,12 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
-    animation: fade-in 0.5s ease-out;
   }
 }
 
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Custom patterns for eVend branding */
+/* Pattern for specific backgrounds like Landing/OTP pages */
 .evend-pattern {
-  /* Dark base with subtle gold and yellow accents */
-  background: linear-gradient(135deg, #000 0%, #0a0a0a 70%, #FFB300 70%, #FFFC00 100%);
-  background-size: cover;
+  background-color: hsl(145 63% 49%);
+  /* WhatsApp Green */
   color: white;
-}
-
-/* Smooth transitions for mobile interactions */
-.mobile-touch {
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-
-/* Custom scrollbar for webkit browsers */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
-}
-
-::-webkit-scrollbar-thumb {
-  background: hsl(var(--border));
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.3);
 }
