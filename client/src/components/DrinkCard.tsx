@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { motion } from "framer-motion";
 import type { Drink } from "@shared/schema";
 
 interface DrinkCardProps {
@@ -7,8 +8,11 @@ interface DrinkCardProps {
 }
 
 export default function DrinkCard({ drink, onSelect }: DrinkCardProps) {
+  const MotionCard = motion(Card);
   return (
-    <Card 
+    <MotionCard
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.98 }}
       className="cursor-pointer hover:shadow-md transition-shadow duration-200 bg-white rounded-xl"
       onClick={() => onSelect(drink)}
       data-testid={`card-drink-${drink.id}`}
@@ -27,6 +31,6 @@ export default function DrinkCard({ drink, onSelect }: DrinkCardProps) {
           ₦ {drink.price}
         </p>
       </CardContent>
-    </Card>
+    </MotionCard>
   );
 }

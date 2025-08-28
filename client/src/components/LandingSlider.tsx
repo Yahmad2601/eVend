@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Coffee } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function LandingSlider() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -112,13 +113,12 @@ export default function LandingSlider() {
 
   return (
     <div className="fixed inset-0 z-50 evend-pattern overflow-hidden">
-      <div
+      <motion.div
         ref={sliderRef}
-        className="flex h-full transition-transform duration-500 ease-in-out cursor-grab active:cursor-grabbing"
-        style={{
-          width: `${totalSlides * 100}%`,
-          transform: `translateX(-${currentSlide * (100 / totalSlides)}%)`,
-        }}
+        className="flex h-full cursor-grab active:cursor-grabbing"
+        style={{ width: `${totalSlides * 100}%` }}
+        animate={{ x: `-${currentSlide * (100 / totalSlides)}%` }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -128,9 +128,14 @@ export default function LandingSlider() {
         data-testid="landing-slider"
       >
         {slides.map((slide, index) => (
-          <div
+          <motion.div
             key={index}
             className="w-1/3 flex flex-col items-center justify-center px-8 text-white text-center relative select-none"
+            animate={{
+              scale: index === currentSlide ? 1 : 0.9,
+              opacity: index === currentSlide ? 1 : 0.5,
+            }}
+            transition={{ duration: 0.5 }}
           >
             <div className="mb-8">
               <h1 className="text-5xl font-bold mb-2">
@@ -179,9 +184,9 @@ export default function LandingSlider() {
                 ))}
               </div>
             </div>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 }

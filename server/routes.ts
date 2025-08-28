@@ -14,18 +14,31 @@ const requireAuth = (req: any, res: any, next: any) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Login route that creates a mock session and redirects to /home
-  app.get("/api/login", (req: any, res) => {
+  // Login route that accepts credentials and creates a mock session
+  app.post("/api/login", (req: any, res) => {
+    const loginSchema = z.object({
+      username: z.string().min(1),
+      password: z.string().min(1),
+    });
+
+    const result = loginSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    const { username } = result.data;
+
     req.session.user = {
       claims: {
-        sub: "mock-user-123",
-        email: "student@campus.edu",
-        first_name: "Test",
+        sub: username,
+        email: `${username}@campus.edu`,
+        first_name: username,
         last_name: "Student",
         profile_image_url: null,
       },
     };
-    res.redirect("/home");
+
+    res.json({ message: "Logged in" });
   });
 
   // Logout route clears the session

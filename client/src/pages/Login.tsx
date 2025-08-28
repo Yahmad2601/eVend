@@ -2,12 +2,10 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { apiRequest } from "@/lib/queryClient";
-import { useAuth } from "@/hooks/useAuth";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export default function Login() {
   const [, setLocation] = useLocation();
-  const { refresh } = useAuth();
   const [credentials, setCredentials] = useState({
     username: "",
     password: "",
@@ -25,7 +23,7 @@ export default function Login() {
     setError(null);
     try {
       await apiRequest("POST", "/api/login", credentials);
-      await refresh();
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       setLocation("/home");
     } catch (err: any) {
       setError(err.message);
@@ -51,6 +49,7 @@ export default function Login() {
           onChange={handleChange}
           placeholder="Password"
         />
+
         {error && <p className="text-sm text-red-500">{error}</p>}
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? "Logging in..." : "Login"}
