@@ -1,4 +1,4 @@
-import { sql } from 'drizzle-orm';
+import { sql } from "drizzle-orm";
 import {
   index,
   jsonb,
@@ -21,24 +21,30 @@ export const sessions = pgTable(
     sess: jsonb("sess").notNull(),
     expire: timestamp("expire").notNull(),
   },
-  (table) => [index("IDX_session_expire").on(table.expire)],
+  (table) => [index("IDX_session_expire").on(table.expire)]
 );
 
 // User storage table.
 // (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   email: varchar("email").unique(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
-  walletBalance: decimal("wallet_balance", { precision: 10, scale: 2 }).default('5000.00'),
+  walletBalance: decimal("wallet_balance", { precision: 10, scale: 2 }).default(
+    "5000.00"
+  ),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const drinks = pgTable("drinks", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: varchar("name").notNull(),
   price: decimal("price", { precision: 8, scale: 2 }).notNull(),
   imageUrl: text("image_url").notNull(),
@@ -48,13 +54,19 @@ export const drinks = pgTable("drinks", {
 });
 
 export const orders = pgTable("orders", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id).notNull(),
-  drinkId: varchar("drink_id").references(() => drinks.id).notNull(),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id")
+    .references(() => users.id)
+    .notNull(),
+  drinkId: varchar("drink_id")
+    .references(() => drinks.id)
+    .notNull(),
   amount: decimal("amount", { precision: 8, scale: 2 }).notNull(),
   paymentMethod: varchar("payment_method").notNull(), // 'wallet' or 'card'
   otp: varchar("otp", { length: 4 }).notNull(),
-  status: varchar("status").default('pending'), // 'pending', 'completed', 'expired'
+  status: varchar("status").default("pending"), // 'pending', 'completed', 'expired'
   createdAt: timestamp("created_at").defaultNow(),
 });
 

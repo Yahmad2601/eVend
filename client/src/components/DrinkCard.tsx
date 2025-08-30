@@ -18,13 +18,20 @@ export default function DrinkCard({ drink, onSelect }: DrinkCardProps) {
       data-testid={`card-drink-${drink.id}`}
     >
       <CardContent className="p-0">
-        <div className="h-28 overflow-hidden">
+        <div className="h-28 overflow-hidden relative">
           <img
             src={drink.imageUrl}
             alt={drink.name}
             className="w-full h-full object-cover"
             loading="lazy"
           />
+          {/* Price Badge */}
+          <div
+            className="absolute bottom-2 right-2 bg-secondary text-white text-xs font-bold px-2 py-1 rounded-full"
+            data-testid={`text-drink-price-${drink.id}`}
+          >
+            ₦{drink.price}
+          </div>
         </div>
         <div className="p-3">
           <h3
@@ -33,12 +40,6 @@ export default function DrinkCard({ drink, onSelect }: DrinkCardProps) {
           >
             {drink.name}
           </h3>
-          <p
-            className="text-secondary font-bold text-base"
-            data-testid={`text-drink-price-${drink.id}`}
-          >
-            ₦ {drink.price}
-          </p>
         </div>
       </CardContent>
     </MotionCard>

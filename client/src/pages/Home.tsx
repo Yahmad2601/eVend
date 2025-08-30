@@ -6,45 +6,72 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import DrinkCard from "@/components/DrinkCard";
 import PaymentModal from "@/components/PaymentModal";
-import PinModal from "@/components/PinModal"; // Import the new PinModal
-import CardPaymentForm from "@/components/CardPaymentForm";
+import PinModal from "@/components/PinModal";
+import CardPaymentForm from "@/components/CardPaymentForm"; // Import CardPaymentForm
 import OTPDisplay from "@/components/OTPDisplay";
-import { ProfileDropdown, MenuDropdown } from "@/components/HeaderDropdown";
+import TransactionHistory, {
+  Transaction,
+} from "@/components/TransactionHistory";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { User, RefreshCw } from "lucide-react";
+import { Eye, EyeOff, PlusCircle, User, RefreshCw } from "lucide-react";
 import type { Drink, Order } from "@shared/schema";
+import { ProfileDropdown } from "@/components/HeaderDropdown";
+import { Link } from "wouter";
 
-export default function Home() {
+// Mock data for transaction history
+const mockTransactions: Transaction[] = [
+  {
+    id: "1",
+    type: "debit",
+    description: "Coca-Cola Purchase",
+    amount: 150.0,
+    date: "29 Aug, 2025",
+  },
+  {
+    id: "2",
+    type: "credit",
+    description: "Wallet Top-up",
+    amount: 1000.0,
+    date: "28 Aug, 2025",
+  },
+  {
+    id: "3",
+    type: "debit",
+    description: "Fanta Purchase",
+    amount: 150.0,
+    date: "27 Aug, 2025",
+  },
+];
+
+// 1. Define the props the component will now receive.
+interface HomeProps {
+  isBalanceVisible: boolean;
+  setIsBalanceVisible: (visible: boolean) => void;
+}
+
+export default function Home({
+  isBalanceVisible,
+  setIsBalanceVisible,
+}: HomeProps) {
   const { user, isLoading: isAuthLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const [selectedDrink, setSelectedDrink] = useState<Drink | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [showPinModal, setShowPinModal] = useState(false); // State for the new modal
+  const [showPinModal, setShowPinModal] = useState(false);
   const [showCardForm, setShowCardForm] = useState(false);
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
   const [showOTP, setShowOTP] = useState(false);
 
   useEffect(() => {
     if (!isAuthLoading && !user) {
-      toast({
-        title: "Unauthorized",
-        description: "Redirecting to login...",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 1000);
+      window.location.href = "/api/login";
     }
-  }, [user, isAuthLoading, toast]);
+  }, [user, isAuthLoading]);
 
-  const {
-    data: drinks = [],
-    isLoading: isDrinksLoading,
-    error: drinksError,
-  } = useQuery<Drink[]>({
+  const { data: drinks = [], isLoading: isDrinksLoading } = useQuery<Drink[]>({
     queryKey: ["/api/drinks"],
     enabled: !!user,
     retry: false,
@@ -60,7 +87,6 @@ export default function Home() {
       return await response.json();
     },
     onSuccess: (order: Order) => {
-      // Reset all modals and show OTP
       setShowPinModal(false);
       setCurrentOrder(order);
       setShowOTP(true);
@@ -71,17 +97,6 @@ export default function Home() {
       });
     },
     onError: (error: any) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "Redirecting to login...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 1000);
-        return;
-      }
       toast({
         title: "Payment Failed",
         description: error.message || "Please try again.",
@@ -96,25 +111,16 @@ export default function Home() {
   };
 
   const handlePayment = (paymentMethod: "wallet" | "card") => {
-    if (!selectedDrink) return;
-
-    setShowPaymentModal(false); // Close payment choice modal
-
-    if (paymentMethod === "card") {
-      setShowCardForm(true);
+    setShowPaymentModal(false);
+    if (paymentMethod === "wallet") {
+      setShowPinModal(true);
     } else {
-      setShowPinModal(true); // Show PIN modal for wallet payments
+      setShowCardForm(true);
     }
   };
 
-  // New handler for PIN confirmation
   const handlePinConfirm = (pin: string) => {
     if (!selectedDrink) return;
-
-    // In a real application, you would send the PIN to the backend for verification.
-    // For now, we'll assume any 4-digit PIN is correct and proceed.
-    console.log("Verifying PIN:", pin); // For demonstration
-
     createOrderMutation.mutate({
       drinkId: selectedDrink.id,
       amount: selectedDrink.price,
@@ -124,6 +130,7 @@ export default function Home() {
 
   const handleCardPaymentComplete = () => {
     if (!selectedDrink) return;
+    setShowCardForm(false);
     createOrderMutation.mutate({
       drinkId: selectedDrink.id,
       amount: selectedDrink.price,
@@ -131,15 +138,15 @@ export default function Home() {
     });
   };
 
+  const handleBackFromCard = () => {
+    setShowCardForm(false);
+    setShowPaymentModal(true);
+  };
+
   const handleBackToMain = () => {
     setShowOTP(false);
     setCurrentOrder(null);
     setSelectedDrink(null);
-  };
-
-  const handleBackFromCard = () => {
-    setShowCardForm(false);
-    setShowPaymentModal(true);
   };
 
   const handleLogout = () => {
@@ -149,10 +156,7 @@ export default function Home() {
   if (isAuthLoading || !user) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <RefreshCw className="h-12 w-12 mx-auto text-primary animate-spin mb-4" />
-          <p className="text-lg font-semibold text-gray-700">Loading...</p>
-        </div>
+        <RefreshCw className="h-12 w-12 mx-auto text-primary animate-spin" />
       </div>
     );
   }
@@ -173,58 +177,85 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="bg-secondary text-white shadow-md sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <h1
-              className="text-2xl font-bold tracking-wider"
-              data-testid="text-header-title"
-            >
-              eVend
-            </h1>
-            <ProfileDropdown user={user} onLogout={handleLogout} />
+    <div className="min-h-screen bg-gray-50 pb-20">
+      <header className="bg-secondary text-white sticky top-0 z-40">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+              {user.profileImageUrl ? (
+                <img
+                  src={user.profileImageUrl}
+                  alt="Profile"
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+              ) : (
+                <User className="text-secondary" />
+              )}
+            </div>
+            <span className="font-semibold text-lg">
+              Hello, {user.username}!
+            </span>
           </div>
+          <ProfileDropdown user={user} onLogout={handleLogout} />
         </div>
       </header>
 
-      <main className="container mx-auto p-4 md:p-6">
-        <section className="mb-8">
-          <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200/80 flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gray-100">
-                {user.profileImageUrl ? (
-                  <img
-                    src={user.profileImageUrl}
-                    alt="Profile"
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                ) : (
-                  <User className="text-secondary w-7 h-7" />
-                )}
-              </div>
-              <div>
-                <p className="text-gray-600 text-sm font-medium">
-                  Your Balance
-                </p>
-                <p
-                  className="text-2xl font-bold text-gray-800"
-                  data-testid="text-user-balance"
-                >
-                  ₦ {user.walletBalance || "0.00"}
-                </p>
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              className="text-primary border-primary hover:bg-primary/10"
-            >
-              Top up
-            </Button>
-          </div>
-        </section>
+      <main className="container mx-auto p-4 md:p-6 space-y-8">
+        {/* Updated Balance Card */}
+        <div className="bg-secondary text-white rounded-xl p-6 relative overflow-hidden">
+          <div className="absolute -top-4 -right-4 w-32 h-32 bg-primary/20 rounded-full opacity-50"></div>
+          <div className="absolute -bottom-8 -left-2 w-40 h-40 bg-primary/20 rounded-full opacity-50"></div>
 
-        <section>
+          <div className="relative z-10">
+            <div className="flex justify-between items-center text-sm text-white/80">
+              <span>Available Balance</span>
+              <button
+                onClick={() => setIsBalanceVisible(!isBalanceVisible)}
+                className="flex items-center gap-2"
+              >
+                {isBalanceVisible ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+            <div className="flex justify-between items-end mt-2">
+              <p className="text-4xl font-bold tracking-tight">
+                {isBalanceVisible
+                  ? `₦${parseFloat(user.walletBalance || "0").toFixed(2)}`
+                  : "∗∗∗∗∗∗"}
+              </p>
+              <Button
+                variant="outline"
+                className="bg-white/20 text-white hover:bg-white/30 border-white/30 shrink-0"
+              >
+                <PlusCircle className="w-4 h-4 mr-2" />
+                Top Up
+              </Button>
+            </div>
+            <p className="text-sm text-white/80 mt-4 uppercase tracking-wider">
+              TEST NAME: {user.username}
+            </p>
+          </div>
+        </div>
+
+        {/* Transaction History */}
+        <div>
+          <div className="flex justify-between items-center mb-2 px-1">
+            <h2 className="text-lg font-bold text-gray-800">
+              Recent Transaction
+            </h2>
+            <Link href="/history">
+              <Button asChild variant="link" className="text-sm text-primary">
+                <a>View All</a>
+              </Button>
+            </Link>
+          </div>
+          <TransactionHistory
+            transactions={mockTransactions}
+            isBalanceVisible={isBalanceVisible}
+          />
+        </div>
+
+        {/* Drinks Grid Section */}
+        <section id="drinks-section" className="pt-4">
           <h2 className="text-xl font-bold text-gray-800 mb-4">
             Select a Drink
           </h2>
@@ -240,10 +271,6 @@ export default function Home() {
                   <Skeleton className="h-6 w-1/2" />
                 </div>
               ))}
-            </div>
-          ) : drinks.length === 0 ? (
-            <div className="text-center py-16">
-              <p className="text-gray-600 text-lg">No drinks available.</p>
             </div>
           ) : (
             <div
@@ -262,6 +289,7 @@ export default function Home() {
         </section>
       </main>
 
+      {/* Modals */}
       <PaymentModal
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
@@ -270,8 +298,6 @@ export default function Home() {
         onPayment={handlePayment}
         isProcessing={createOrderMutation.isPending}
       />
-
-      {/* Add the new PinModal to the render output */}
       <PinModal
         isOpen={showPinModal}
         onClose={() => setShowPinModal(false)}
