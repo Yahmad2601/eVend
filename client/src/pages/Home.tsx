@@ -193,7 +193,7 @@ export default function Home({
               )}
             </div>
             <span className="font-semibold text-lg">
-              Hello, {user.username}!
+              Hello, {user.firstName}!
             </span>
           </div>
           <ProfileDropdown user={user} onLogout={handleLogout} />
@@ -231,7 +231,7 @@ export default function Home({
               </Button>
             </div>
             <p className="text-sm text-white/80 mt-4 uppercase tracking-wider">
-              TEST NAME: {user.username}
+              {/* {user.firstName} */}
             </p>
           </div>
         </div>

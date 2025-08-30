@@ -1,45 +1,80 @@
 import type { Express } from "express";
-import { Router } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertOrderSchema } from "@shared/schema";
 import { z } from "zod";
-import { isAuthenticated } from "./replitAuth";
 
-export function createRouter() {
-  const router = Router();
+// Authentication middleware using session
+const requireAuth = (req: any, res: any, next: any) => {
+  if (req.session?.user) {
+    req.user = req.session.user;
+    return next();
+  }
+  res.status(401).json({ message: "Unauthorized" });
+};
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Login route that accepts credentials and creates a mock session
+  app.post("/api/login", (req: any, res) => {
+    const loginSchema = z.object({
+      username: z.string().min(1),
+      password: z.string().min(1),
+    });
+
+    const result = loginSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    const { username } = result.data;
+
+    req.session.user = {
+      claims: {
+        sub: username,
+        email: `${username}@campus.edu`,
+        first_name: username,
+        last_name: "Student",
+        profile_image_url: null,
+      },
+    };
+
+    res.json({ message: "Logged in" });
+  });
+
+  // Logout route clears the session
+  app.get("/api/logout", (req: any, res) => {
+    req.session.destroy(() => {
+      res.redirect("/");
+    });
+  });
 
   // Auth routes
-  router.get("/api/auth/user", isAuthenticated, async (req: any, res) => {
-    const replitUser = req.user.claims;
-    const username = replitUser.name || replitUser.sub; // Use the correct 'name' field
+  app.get("/api/auth/user", requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      let user = await storage.getUser(userId);
 
-    let user = await storage.getUser(replitUser.sub);
-
-    if (user) {
-      if (
-        user.username !== username ||
-        user.profileImageUrl !== replitUser.profile_image_url
-      ) {
+      // Create mock user if doesn't exist
+      if (!user) {
         user = await storage.upsertUser({
-          id: replitUser.sub,
-          username: username,
-          profileImageUrl: replitUser.profile_image_url,
+          id: userId,
+          email: req.user.claims.email,
+          firstName: req.user.claims.first_name,
+          lastName: req.user.claims.last_name,
+          profileImageUrl: req.user.claims.profile_image_url,
+          walletBalance: "4180.20",
         });
       }
-    } else {
-      user = await storage.upsertUser({
-        id: replitUser.sub,
-        username: username,
-        profileImageUrl: replitUser.profile_image_url,
-        walletBalance: "1000.00",
-      });
+
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
     }
-    res.json(user);
   });
 
   // Drinks routes
-  router.get("/api/drinks", async (req, res) => {
+  app.get("/api/drinks", async (req, res) => {
     try {
       const drinks = await storage.getDrinks();
       res.json(drinks);
@@ -49,7 +84,7 @@ export function createRouter() {
     }
   });
 
-  router.get("/api/drinks/:id", async (req, res) => {
+  app.get("/api/drinks/:id", async (req, res) => {
     try {
       const drink = await storage.getDrink(req.params.id);
       if (!drink) {
@@ -63,7 +98,7 @@ export function createRouter() {
   });
 
   // Orders routes
-  router.post("/api/orders", isAuthenticated, async (req: any, res) => {
+  app.post("/api/orders", requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const orderData = insertOrderSchema.parse(req.body);
@@ -116,7 +151,7 @@ export function createRouter() {
     }
   });
 
-  router.get("/api/orders", isAuthenticated, async (req: any, res) => {
+  app.get("/api/orders", requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const orders = await storage.getUserOrders(userId);
@@ -127,7 +162,7 @@ export function createRouter() {
     }
   });
 
-  router.get("/api/orders/:id", isAuthenticated, async (req: any, res) => {
+  app.get("/api/orders/:id", requireAuth, async (req: any, res) => {
     try {
       const order = await storage.getOrder(req.params.id);
       if (!order) {
@@ -149,6 +184,6 @@ export function createRouter() {
 
   // Mock drinks are already seeded in storage, no need for seed endpoint
 
-  // const router = createServer(router);
-  return router;
+  const httpServer = createServer(app);
+  return httpServer;
 }
