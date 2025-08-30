@@ -12,7 +12,7 @@ import OTPDisplay from "@/components/OTPDisplay";
 import TransactionHistory, {
   Transaction,
 } from "@/components/TransactionHistory";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Eye, EyeOff, PlusCircle, User, RefreshCw } from "lucide-react";
 import type { Drink, Order } from "@shared/schema";
@@ -243,9 +243,14 @@ export default function Home({
               Recent Transaction
             </h2>
             <Link href="/history">
-              <Button asChild variant="link" className="text-sm text-primary">
-                <a>View All</a>
-              </Button>
+              <a
+                className={buttonVariants({
+                  variant: "link",
+                  className: "text-sm text-primary p-0 h-auto",
+                })}
+              >
+                View All
+              </a>
             </Link>
           </div>
           <TransactionHistory

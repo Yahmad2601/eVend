@@ -8,9 +8,8 @@ interface DrinkCardProps {
 }
 
 export default function DrinkCard({ drink, onSelect }: DrinkCardProps) {
-  const MotionCard = motion(Card);
   return (
-    <MotionCard
+    <motion.div
       whileHover={{ y: -5 }}
       whileTap={{ scale: 0.97 }}
       className="cursor-pointer bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200/80"
@@ -42,6 +41,6 @@ export default function DrinkCard({ drink, onSelect }: DrinkCardProps) {
           </h3>
         </div>
       </CardContent>
-    </MotionCard>
+    </motion.div>
   );
 }
