@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import DrinkCard from "@/components/DrinkCard";
 import PaymentModal from "@/components/PaymentModal";
@@ -16,7 +15,6 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Eye, EyeOff, PlusCircle, User, RefreshCw } from "lucide-react";
 import type { Drink, Order } from "@shared/schema";
-import { ProfileDropdown } from "@/components/HeaderDropdown";
 import { Link } from "wouter";
 
 // Mock data for transaction history
@@ -64,12 +62,6 @@ export default function Home({
   const [showCardForm, setShowCardForm] = useState(false);
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
   const [showOTP, setShowOTP] = useState(false);
-
-  useEffect(() => {
-    if (!isAuthLoading && !user) {
-      window.location.href = "/api/login";
-    }
-  }, [user, isAuthLoading]);
 
   const { data: drinks = [], isLoading: isDrinksLoading } = useQuery<Drink[]>({
     queryKey: ["/api/drinks"],
@@ -149,9 +141,9 @@ export default function Home({
     setSelectedDrink(null);
   };
 
-  const handleLogout = () => {
-    window.location.href = "/api/logout";
-  };
+  // const handleLogout = () => {
+  //   window.location.href = "/api/logout";
+  // };
 
   if (isAuthLoading || !user) {
     return (
@@ -181,22 +173,23 @@ export default function Home({
       <header className="bg-secondary text-white sticky top-0 z-40">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-              {user.profileImageUrl ? (
-                <img
-                  src={user.profileImageUrl}
-                  alt="Profile"
-                  className="w-10 h-10 rounded-full object-cover"
-                />
-              ) : (
-                <User className="text-secondary" />
-              )}
-            </div>
+            <Link to="/profile">
+              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center cursor-pointer">
+                {user.profileImageUrl ? (
+                  <img
+                    src={user.profileImageUrl}
+                    alt="Profile"
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <User className="text-secondary" />
+                )}
+              </div>
+            </Link>
             <span className="font-semibold text-lg">
               Hello, {user.firstName}!
             </span>
           </div>
-          <ProfileDropdown user={user} onLogout={handleLogout} />
         </div>
       </header>
 

@@ -13,62 +13,62 @@ interface CardPaymentFormProps {
   isProcessing: boolean;
 }
 
-export default function CardPaymentForm({ 
-  drink, 
-  onBack, 
-  onPaymentComplete, 
-  isProcessing 
+export default function CardPaymentForm({
+  drink,
+  onBack,
+  onPaymentComplete,
+  isProcessing,
 }: CardPaymentFormProps) {
   const [cardDetails, setCardDetails] = useState({
-    cardNumber: '',
-    expiryDate: '',
-    cvv: '',
-    cardholderName: ''
+    cardNumber: "",
+    expiryDate: "",
+    cvv: "",
+    cardholderName: "",
   });
 
   const formatCardNumber = (value: string) => {
-    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
     const matches = v.match(/\d{4,16}/g);
-    const match = matches && matches[0] || '';
+    const match = (matches && matches[0]) || "";
     const parts = [];
     for (let i = 0, len = match.length; i < len; i += 4) {
       parts.push(match.substring(i, i + 4));
     }
     if (parts.length) {
-      return parts.join(' ');
+      return parts.join(" ");
     } else {
       return v;
     }
   };
 
   const formatExpiryDate = (value: string) => {
-    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
     if (v.length >= 2) {
-      return v.substring(0, 2) + '/' + v.substring(2, 4);
+      return v.substring(0, 2) + "/" + v.substring(2, 4);
     }
     return v;
   };
 
   const handleInputChange = (field: string, value: string) => {
     let formattedValue = value;
-    
-    if (field === 'cardNumber') {
+
+    if (field === "cardNumber") {
       formattedValue = formatCardNumber(value);
-    } else if (field === 'expiryDate') {
+    } else if (field === "expiryDate") {
       formattedValue = formatExpiryDate(value);
-    } else if (field === 'cvv') {
-      formattedValue = value.replace(/[^0-9]/gi, '').substring(0, 4);
+    } else if (field === "cvv") {
+      formattedValue = value.replace(/[^0-9]/gi, "").substring(0, 3);
     }
-    
-    setCardDetails(prev => ({
+
+    setCardDetails((prev) => ({
       ...prev,
-      [field]: formattedValue
+      [field]: formattedValue,
     }));
   };
 
   const isFormValid = () => {
     return (
-      cardDetails.cardNumber.replace(/\s/g, '').length >= 16 &&
+      cardDetails.cardNumber.replace(/\s/g, "").length >= 16 &&
       cardDetails.expiryDate.length === 5 &&
       cardDetails.cvv.length >= 3 &&
       cardDetails.cardholderName.trim().length > 0
@@ -109,12 +109,18 @@ export default function CardPaymentForm({
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium text-gray-900" data-testid="text-card-drink-name">
+                    <p
+                      className="font-medium text-gray-900"
+                      data-testid="text-card-drink-name"
+                    >
                       {drink.name}
                     </p>
                     <p className="text-sm text-gray-600">33cl Can</p>
                   </div>
-                  <p className="text-xl font-bold text-primary" data-testid="text-card-amount">
+                  <p
+                    className="text-xl font-bold text-primary"
+                    data-testid="text-card-amount"
+                  >
                     ₦ {drink.price}
                   </p>
                 </div>
@@ -138,7 +144,9 @@ export default function CardPaymentForm({
                       type="text"
                       placeholder="1234 5678 9012 3456"
                       value={cardDetails.cardNumber}
-                      onChange={(e) => handleInputChange('cardNumber', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("cardNumber", e.target.value)
+                      }
                       maxLength={19}
                       data-testid="input-card-number"
                     />
@@ -152,7 +160,9 @@ export default function CardPaymentForm({
                         type="text"
                         placeholder="MM/YY"
                         value={cardDetails.expiryDate}
-                        onChange={(e) => handleInputChange('expiryDate', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("expiryDate", e.target.value)
+                        }
                         maxLength={5}
                         data-testid="input-expiry-date"
                       />
@@ -164,7 +174,9 @@ export default function CardPaymentForm({
                         type="text"
                         placeholder="123"
                         value={cardDetails.cvv}
-                        onChange={(e) => handleInputChange('cvv', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("cvv", e.target.value)
+                        }
                         maxLength={4}
                         data-testid="input-cvv"
                       />
@@ -178,14 +190,18 @@ export default function CardPaymentForm({
                       type="text"
                       placeholder="John Doe"
                       value={cardDetails.cardholderName}
-                      onChange={(e) => handleInputChange('cardholderName', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("cardholderName", e.target.value)
+                      }
                       data-testid="input-cardholder-name"
                     />
                   </div>
 
                   <div className="flex items-center space-x-2 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
                     <Lock className="w-4 h-4" />
-                    <span>Your payment information is secure and encrypted</span>
+                    <span>
+                      Your payment information is secure and encrypted
+                    </span>
                   </div>
 
                   <Button
@@ -208,10 +224,10 @@ export default function CardPaymentForm({
             </Card>
 
             {/* Security Notice */}
-            <div className="text-center text-sm text-gray-500">
+            {/* <div className="text-center text-sm text-gray-500">
               <p>This is a demo payment form.</p>
               <p>No real charges will be made.</p>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

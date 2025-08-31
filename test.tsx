@@ -1,49 +1,70 @@
-// client/src/components/DrinkCard.tsx
+import { useState } from "react";
+import { Switch, Route, Redirect } from "wouter";
+import Landing from "@/pages/Landing";
+import Login from "@/pages/Login";
+import Home from "@/pages/Home";
+import NotFound from "@/pages/not-found";
+import { ProfilePage } from "./pages/ProfilePage";
+import TransactionHistoryPage from "@/pages/TransactionHistoryPage";
+import { Toaster } from "@/components/ui/toaster";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
+import { RefreshCw } from "lucide-react";
 
-import { Card, CardContent } from "@/components/ui/card";
-import { motion } from "framer-motion";
-import type { Drink } from "@shared/schema";
+// This internal component holds the routing logic
+function AppRoutes() {
+  const [isBalanceVisible, setIsBalanceVisible] = useState(true);
+  const { isAuthenticated, isLoading } = useAuth();
 
-interface DrinkCardProps {
-  drink: Drink;
-  onSelect: (drink: Drink) => void;
+  // Show a loading screen while checking auth status
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <RefreshCw className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Define your private routes
+  const privateRoutes = (
+    <>
+      <Route path="/home">
+        <Home
+          isBalanceVisible={isBalanceVisible}
+          setIsBalanceVisible={setIsBalanceVisible}
+        />
+      </Route>
+      <Route path="/profile" component={ProfilePage} />
+      <Route path="/history">
+        <TransactionHistoryPage
+          isBalanceVisible={isBalanceVisible}
+          setIsBalanceVisible={setIsBalanceVisible}
+        />
+      </Route>
+    </>
+  );
+
+  return (
+    <Switch>
+      {/* Public Routes */}
+      <Route path="/" component={Landing} />
+      <Route path="/login" component={Login} />
+
+      {/* If authenticated, show private routes. Otherwise, redirect all of them to login. */}
+      {isAuthenticated ? privateRoutes : <Redirect to="/login" />}
+
+      <Route component={NotFound} />
+    </Switch>
+  );
 }
 
-export default function DrinkCard({ drink, onSelect }: DrinkCardProps) {
-  // The 'motion(Card)' syntax is deprecated.
-  // The fix is to use motion.div and apply the Card's styles to it.
+// The main App component sets up the providers
+export default function App() {
   return (
-    <motion.div
-      whileHover={{ y: -5 }}
-      whileTap={{ scale: 0.97 }}
-      className="cursor-pointer bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200/80"
-      onClick={() => onSelect(drink)}
-      data-testid={`card-drink-${drink.id}`}
-    >
-      <CardContent className="p-0">
-        <div className="h-28 overflow-hidden relative">
-          <img
-            src={drink.imageUrl}
-            alt={drink.name}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-          <div
-            className="absolute bottom-2 right-2 bg-secondary text-white text-xs font-bold px-2 py-1 rounded-full"
-            data-testid={`text-drink-price-${drink.id}`}
-          >
-            ₦{drink.price}
-          </div>
-        </div>
-        <div className="p-3">
-          <h3
-            className="font-semibold text-gray-800 text-sm truncate"
-            data-testid={`text-drink-name-${drink.id}`}
-          >
-            {drink.name}
-          </h3>
-        </div>
-      </CardContent>
-    </motion.div>
+    <QueryClientProvider client={queryClient}>
+      <AppRoutes />
+      <Toaster />
+    </QueryClientProvider>
   );
 }
