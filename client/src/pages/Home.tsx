@@ -48,6 +48,15 @@ interface HomeProps {
   setIsBalanceVisible: (visible: boolean) => void;
 }
 
+const formatCurrency = (balance: string | null | undefined) => {
+  const numericBalance = parseFloat(balance || "0");
+  // This uses the browser's built-in number formatter to add commas
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(numericBalance);
+};
+
 export default function Home({
   isBalanceVisible,
   setIsBalanceVisible,
@@ -79,9 +88,7 @@ export default function Home({
       return await response.json();
     },
     onSuccess: (order: Order) => {
-      setShowPinModal(false);
       setCurrentOrder(order);
-      setShowOTP(true);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: "Payment Successful!",
@@ -89,6 +96,7 @@ export default function Home({
       });
     },
     onError: (error: any) => {
+      setShowOTP(false);
       toast({
         title: "Payment Failed",
         description: error.message || "Please try again.",
@@ -111,22 +119,25 @@ export default function Home({
     }
   };
 
-  const handlePinConfirm = (pin: string) => {
-    if (!selectedDrink) return;
-    createOrderMutation.mutate({
-      drinkId: selectedDrink.id,
-      amount: selectedDrink.price,
-      paymentMethod: "wallet",
-    });
-  };
-
   const handleCardPaymentComplete = () => {
     if (!selectedDrink) return;
     setShowCardForm(false);
+    setShowOTP(true);
     createOrderMutation.mutate({
       drinkId: selectedDrink.id,
       amount: selectedDrink.price,
       paymentMethod: "card",
+    });
+  };
+
+  const handlePinConfirm = (pin: string) => {
+    if (!selectedDrink) return;
+    setShowPinModal(false);
+    setShowOTP(true);
+    createOrderMutation.mutate({
+      drinkId: selectedDrink.id,
+      amount: selectedDrink.price,
+      paymentMethod: "wallet",
     });
   };
 
@@ -148,13 +159,19 @@ export default function Home({
   if (isAuthLoading || !user) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <RefreshCw className="h-12 w-12 mx-auto text-primary animate-spin" />
+        <RefreshCw className="h-12 w-12 mx-auto text-secondary animate-spin" />
       </div>
     );
   }
 
-  if (showOTP && currentOrder) {
-    return <OTPDisplay order={currentOrder} onBackToMain={handleBackToMain} />;
+  if (showOTP) {
+    return (
+      <OTPDisplay
+        order={currentOrder}
+        onBackToMain={handleBackToMain}
+        isLoading={createOrderMutation.isPending} // Pass the loading state down
+      />
+    );
   }
 
   if (showCardForm && selectedDrink) {
@@ -196,8 +213,8 @@ export default function Home({
       <main className="container mx-auto p-4 md:p-6 space-y-8">
         {/* Updated Balance Card */}
         <div className="bg-secondary text-white rounded-xl p-6 relative overflow-hidden">
-          <div className="absolute -top-4 -right-4 w-32 h-32 bg-primary/20 rounded-full opacity-50"></div>
-          <div className="absolute -bottom-8 -left-2 w-40 h-40 bg-primary/20 rounded-full opacity-50"></div>
+          <div className="absolute -top-4 -right-4 w-32 h-32 bg-secondary/20 rounded-full opacity-50"></div>
+          <div className="absolute -bottom-8 -left-2 w-40 h-40 bg-secondary/20 rounded-full opacity-50"></div>
 
           <div className="relative z-10">
             <div className="flex justify-between items-center text-sm text-white/80">
@@ -209,23 +226,29 @@ export default function Home({
                 {isBalanceVisible ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
-            <div className="flex justify-between items-end mt-2">
+            <div>
               <p className="text-4xl font-bold tracking-tight">
                 {isBalanceVisible
-                  ? `₦${parseFloat(user.walletBalance || "0").toFixed(2)}`
+                  ? `₦${formatCurrency(user?.walletBalance)}`
                   : "∗∗∗∗∗∗"}
               </p>
+            </div>
+            <div className="flex justify-between items-end mt-2">
+              <p className="text-sm text-white/80 mt-4 uppercase tracking-wider">
+                {/* {user.firstName} */} eVend Wallet
+              </p>
+              {/* 👇 MODIFY THIS BUTTON */}
               <Button
+                asChild // Use asChild to pass styles to the Link
                 variant="outline"
                 className="bg-white/20 text-white hover:bg-white/30 border-white/30 shrink-0"
               >
-                <PlusCircle className="w-4 h-4 mr-2" />
-                Top Up
+                <Link href="/top-up">
+                  <PlusCircle className="w-4 h-4 mr-2" />
+                  Top Up
+                </Link>
               </Button>
             </div>
-            <p className="text-sm text-white/80 mt-4 uppercase tracking-wider">
-              {/* {user.firstName} */}
-            </p>
           </div>
         </div>
 
@@ -239,7 +262,7 @@ export default function Home({
               <a
                 className={buttonVariants({
                   variant: "link",
-                  className: "text-sm text-primary p-0 h-auto",
+                  className: "text-sm text-secondary p-0 h-auto",
                 })}
               >
                 View All

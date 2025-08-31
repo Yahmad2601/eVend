@@ -75,7 +75,7 @@ export default function Login() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-3.5 text-gray-500 hover:text-primary"
+              className="absolute right-3 top-3.5 text-gray-500 hover:text-secondary"
             >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
@@ -114,7 +114,7 @@ export default function Login() {
           <span className="text-gray-500">New user? </span>
           <a
             href="#/signup"
-            className="font-semibold text-primary hover:underline"
+            className="font-semibold text-secondary hover:underline"
           >
             Sign up now
           </a>

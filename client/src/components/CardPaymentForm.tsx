@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, CreditCard, Lock } from "lucide-react";
 import type { Drink } from "@shared/schema";
+import { useRef } from "react";
 
 interface CardPaymentFormProps {
   drink: Drink;
@@ -25,6 +26,10 @@ export default function CardPaymentForm({
     cvv: "",
     cardholderName: "",
   });
+
+  const expiryDateRef = useRef<HTMLInputElement>(null);
+  const cvvRef = useRef<HTMLInputElement>(null);
+  const cardholderNameRef = useRef<HTMLInputElement>(null);
 
   const formatCardNumber = (value: string) => {
     const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
@@ -54,10 +59,20 @@ export default function CardPaymentForm({
 
     if (field === "cardNumber") {
       formattedValue = formatCardNumber(value);
+      // 3. Add auto-focus logic
+      if (formattedValue.replace(/\s/g, "").length === 16) {
+        expiryDateRef.current?.focus();
+      }
     } else if (field === "expiryDate") {
       formattedValue = formatExpiryDate(value);
+      if (formattedValue.length === 5) {
+        cvvRef.current?.focus();
+      }
     } else if (field === "cvv") {
       formattedValue = value.replace(/[^0-9]/gi, "").substring(0, 3);
+      if (formattedValue.length === 3) {
+        cardholderNameRef.current?.focus();
+      }
     }
 
     setCardDetails((prev) => ({
@@ -86,7 +101,7 @@ export default function CardPaymentForm({
     <div className="fixed inset-0 z-50 bg-background">
       <div className="flex flex-col h-full">
         {/* Header */}
-        <div className="bg-primary text-white p-6">
+        <div className="bg-secondary text-white p-6">
           <div className="flex items-center space-x-4">
             <Button
               onClick={onBack}
@@ -118,7 +133,7 @@ export default function CardPaymentForm({
                     <p className="text-sm text-gray-600">33cl Can</p>
                   </div>
                   <p
-                    className="text-xl font-bold text-primary"
+                    className="text-xl font-bold text-secondary"
                     data-testid="text-card-amount"
                   >
                     ₦ {drink.price}
@@ -156,6 +171,7 @@ export default function CardPaymentForm({
                     <div>
                       <Label htmlFor="expiryDate">Expiry Date</Label>
                       <Input
+                        ref={expiryDateRef}
                         id="expiryDate"
                         type="text"
                         placeholder="MM/YY"
@@ -170,6 +186,7 @@ export default function CardPaymentForm({
                     <div>
                       <Label htmlFor="cvv">CVV</Label>
                       <Input
+                        ref={cvvRef}
                         id="cvv"
                         type="text"
                         placeholder="123"
@@ -186,6 +203,7 @@ export default function CardPaymentForm({
                   <div>
                     <Label htmlFor="cardholderName">Cardholder Name</Label>
                     <Input
+                      ref={cardholderNameRef}
                       id="cardholderName"
                       type="text"
                       placeholder="John Doe"
@@ -207,7 +225,7 @@ export default function CardPaymentForm({
                   <Button
                     type="submit"
                     disabled={!isFormValid() || isProcessing}
-                    className="w-full bg-primary hover:bg-primary/90 text-white py-3 font-semibold disabled:opacity-50 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] min-h-[48px]"
+                    className="w-full bg-secondary hover:bg-secondary/90 text-white py-3 font-semibold disabled:opacity-50 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] min-h-[48px]"
                     data-testid="button-complete-payment"
                   >
                     {isProcessing ? (

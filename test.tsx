@@ -1,70 +1,73 @@
-import { useState } from "react";
-import { Switch, Route, Redirect } from "wouter";
-import Landing from "@/pages/Landing";
-import Login from "@/pages/Login";
-import Home from "@/pages/Home";
-import NotFound from "@/pages/not-found";
-import { ProfilePage } from "./pages/ProfilePage";
-import TransactionHistoryPage from "@/pages/TransactionHistoryPage";
-import { Toaster } from "@/components/ui/toaster";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
-import { useAuth } from "@/hooks/useAuth";
-import { RefreshCw } from "lucide-react";
+// ... (all other imports remain the same)
 
-// This internal component holds the routing logic
-function AppRoutes() {
-  const [isBalanceVisible, setIsBalanceVisible] = useState(true);
-  const { isAuthenticated, isLoading } = useAuth();
+// ... (mockTransactions and HomeProps interface remain the same)
 
-  // Show a loading screen while checking auth status
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <RefreshCw className="h-12 w-12 animate-spin text-primary" />
-      </div>
-    );
-  }
+// 👇 1. Add this helper function inside your Home component
+const formatCurrency = (balance: string | null | undefined) => {
+  const numericBalance = parseFloat(balance || "0");
+  // This uses the browser's built-in number formatter to add commas
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(numericBalance);
+};
 
-  // Define your private routes
-  const privateRoutes = (
-    <>
-      <Route path="/home">
-        <Home
-          isBalanceVisible={isBalanceVisible}
-          setIsBalanceVisible={setIsBalanceVisible}
-        />
-      </Route>
-      <Route path="/profile" component={ProfilePage} />
-      <Route path="/history">
-        <TransactionHistoryPage
-          isBalanceVisible={isBalanceVisible}
-          setIsBalanceVisible={setIsBalanceVisible}
-        />
-      </Route>
-    </>
-  );
+export default function Home({
+  isBalanceVisible,
+  setIsBalanceVisible,
+}: HomeProps) {
+  const { user, isLoading: isAuthLoading } = useAuth();
+  // ... (all other hooks, state, and functions remain the same)
+
+  // ... (loading logic, conditional rendering for OTP/Card form remains the same)
 
   return (
-    <Switch>
-      {/* Public Routes */}
-      <Route path="/" component={Landing} />
-      <Route path="/login" component={Login} />
+    <div className="min-h-screen bg-gray-50 pb-20">
+      <header className="bg-white text-gray-800 sticky top-0 z-40 shadow-sm">
+        {/* ... (header JSX remains the same) ... */}
+      </header>
 
-      {/* If authenticated, show private routes. Otherwise, redirect all of them to login. */}
-      {isAuthenticated ? privateRoutes : <Redirect to="/login" />}
+      <main className="container mx-auto p-4 md:p-6 space-y-8">
+        {/* Balance Card */}
+        <div className="bg-secondary text-white rounded-xl p-6 relative overflow-hidden shadow-lg">
+          <div className="absolute -top-4 -right-4 w-32 h-32 bg-primary/20 rounded-full opacity-50"></div>
+          <div className="absolute -bottom-8 -left-2 w-40 h-40 bg-primary/20 rounded-full opacity-50"></div>
 
-      <Route component={NotFound} />
-    </Switch>
-  );
-}
+          <div className="relative z-10">
+            <div className="flex justify-between items-center text-sm text-white/80">
+              <span>Available Balance</span>
+              <button
+                onClick={() => setIsBalanceVisible(!isBalanceVisible)}
+                className="flex items-center gap-2"
+              >
+                {isBalanceVisible ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+            <div className="flex justify-between items-end mt-2">
+              <p className="text-4xl font-bold tracking-tight">
+                {/* 👇 2. Use the new formatting function here */}
+                {isBalanceVisible
+                  ? `₦${formatCurrency(user?.walletBalance)}`
+                  : "∗∗∗∗∗∗"}
+              </p>
+              <Link href="/top-up">
+                <Button
+                  as="a"
+                  variant="outline"
+                  className="bg-white/20 text-white hover:bg-white/30 border-white/30 shrink-0"
+                >
+                  <PlusCircle className="w-4 h-4 mr-2" />
+                  Top Up
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
 
-// The main App component sets up the providers
-export default function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <AppRoutes />
-      <Toaster />
-    </QueryClientProvider>
+        {/* ... (rest of the home page JSX remains the same) ... */}
+      </main>
+
+      {/* ... (Modals remain the same) ... */}
+    </div>
   );
 }

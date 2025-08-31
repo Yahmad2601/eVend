@@ -11,6 +11,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { RefreshCw } from "lucide-react";
+import { TopUpPage } from "./pages/TopUpPage";
 
 // This internal component holds the routing logic
 function AppRoutes() {
@@ -21,7 +22,7 @@ function AppRoutes() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <RefreshCw className="h-12 w-12 animate-spin text-primary" />
+        <RefreshCw className="h-12 w-12 animate-spin text-secondary" />
       </div>
     );
   }
@@ -42,6 +43,8 @@ function AppRoutes() {
           setIsBalanceVisible={setIsBalanceVisible}
         />
       </Route>
+      {/* 👇 Add the new TopUpPage route here */}
+      <Route path="/top-up" component={TopUpPage} />
     </>
   );
 

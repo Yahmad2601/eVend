@@ -31,9 +31,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     req.session.user = {
       claims: {
         sub: username,
-        email: `${username}@campus.edu`,
+        email: `${username}@abuzaria.edu`,
         first_name: username,
-        last_name: "Student",
+        last_name: "(Student)",
         profile_image_url: null,
       },
     };
@@ -148,6 +148,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error("Error creating order:", error);
       res.status(500).json({ message: "Failed to create order" });
+    }
+  });
+
+  app.post("/api/wallet/top-up", requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { amount } = req.body;
+
+      if (typeof amount !== "number" || amount <= 0) {
+        return res.status(400).json({ message: "Invalid amount provided." });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found." });
+      }
+
+      const currentBalance = parseFloat(user.walletBalance || "0");
+      const newBalance = (currentBalance + amount).toFixed(2);
+
+      await storage.updateUserBalance(userId, newBalance);
+
+      res.status(200).json({ message: "Wallet topped up successfully." });
+    } catch (error) {
+      console.error("Error topping up wallet:", error);
+      res.status(500).json({ message: "Failed to top up wallet." });
     }
   });
 

@@ -115,7 +115,7 @@ export default function LandingSlider() {
       <Button
         onClick={handleStart}
         disabled={isRedirecting}
-        className="bg-white text-primary hover:bg-gray-100 h-12 px-8 font-bold shadow-lg text-base"
+        className="bg-white text-secondary hover:bg-gray-100 h-12 px-8 font-bold shadow-lg text-base"
       >
         {isRedirecting ? "Loading..." : "GET STARTED"}
       </Button>

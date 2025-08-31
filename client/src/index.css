@@ -28,7 +28,7 @@
   --destructive-foreground: hsl(0 0% 100%);
   --border: hsl(210 20% 88%);
   --input: hsl(0 0% 100%);
-  --ring: hsl(145 63% 49%);
+  --ring: hsl(174 72% 38%);
   --radius: 0.75rem;
   --font-sans: 'Roboto', sans-serif;
 }
@@ -45,7 +45,7 @@
 
 /* Pattern for specific backgrounds like Landing/OTP pages */
 .evend-pattern {
-  background-color: hsl(145 63% 49%);
+  background-color: hsl(174 72% 38%);
   /* WhatsApp Green */
   color: white;
 }
