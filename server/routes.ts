@@ -208,7 +208,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Mock drinks are already seeded in storage, no need for seed endpoint
+  // 👇 ADD THIS NEW ENDPOINT FOR THE VENDING MACHINE
+  app.post("/api/machine/vend", async (req: any, res) => {
+    // 1. Authenticate the Machine
+    const apiKey = req.headers.authorization?.split(" ")[1];
+    if (apiKey !== process.env.VENDING_MACHINE_API_KEY) {
+      return res.status(401).json({ message: "Unauthorized machine" });
+    }
+
+    // 2. Validate the OTP from the request
+    const { otp } = req.body;
+    if (!otp || typeof otp !== "string" || otp.length !== 4) {
+      return res.status(400).json({ message: "Invalid OTP format" });
+    }
+
+    try {
+      // 3. Find the order with the given OTP
+      const order = await storage.getOrderByOtp(otp);
+
+      // Check if order exists, is not already used, and is not expired
+      if (!order) {
+        return res.status(404).json({ message: "OTP not found" });
+      }
+      if (order.status === "completed") {
+        return res.status(409).json({ message: "OTP has already been used" });
+      }
+
+      // Optional: Check if the OTP is expired (e.g., older than 5 minutes)
+      const fiveMinutes = 5 * 60 * 1000;
+      if (
+        order.createdAt &&
+        new Date().getTime() - order.createdAt.getTime() > fiveMinutes
+      ) {
+        await storage.updateOrderStatus(order.id, "expired");
+        return res.status(410).json({ message: "OTP has expired" });
+      }
+
+      // 4. Mark the order as completed to prevent reuse
+      await storage.updateOrderStatus(order.id, "completed");
+
+      // 5. Respond with the drink details for dispensing
+      const drink = await storage.getDrink(order.drinkId);
+      res.status(200).json({
+        success: true,
+        drinkId: order.drinkId,
+        drinkName: drink?.name || "Unknown Drink",
+      });
+    } catch (error) {
+      console.error("Vending error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

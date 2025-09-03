@@ -276,8 +276,8 @@ export default function Home({
         </div>
 
         {/* Drinks Grid Section */}
-        <section id="drinks-section" className="pt-4">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">
+        <section id="drinks-section" className="pt-0">
+          <h2 className="text-lg font-bold text-gray-800 mb-4">
             Select a Drink
           </h2>
           {isDrinksLoading ? (
