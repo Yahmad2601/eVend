@@ -190,7 +190,7 @@ export default function Home({
       <header className="bg-secondary text-white sticky top-0 z-40">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link to="/profile">
+            <Link href="/profile">
               <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center cursor-pointer">
                 {user.profileImageUrl ? (
                   <img

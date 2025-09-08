@@ -1,5 +1,5 @@
 import type { Express } from "express";
-import { createServer, type Server } from "http";
+// import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertOrderSchema } from "@shared/schema";
 import { z } from "zod";
@@ -13,7 +13,7 @@ const requireAuth = (req: any, res: any, next: any) => {
   res.status(401).json({ message: "Unauthorized" });
 };
 
-export async function registerRoutes(app: Express): Promise<Server> {
+export function registerRoutes(app: Express): void {
   // Login route that accepts credentials and creates a mock session
   app.post("/api/login", (req: any, res) => {
     const loginSchema = z.object({
@@ -259,7 +259,4 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Internal server error" });
     }
   });
-
-  const httpServer = createServer(app);
-  return httpServer;
 }
