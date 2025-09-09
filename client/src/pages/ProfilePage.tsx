@@ -9,7 +9,6 @@ import {
   HelpCircle,
   ChevronRight,
 } from "lucide-react";
-import { useLocation } from "wouter";
 
 // Reusable component for menu items
 function MenuItem({
@@ -37,7 +36,6 @@ function MenuItem({
 
 export function ProfilePage() {
   const { user, logout } = useAuth();
-  const [, setLocation] = useLocation();
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
@@ -60,7 +58,10 @@ export function ProfilePage() {
       <div className="flex flex-col items-center p-6 bg-white border-b text-center">
         {/* This now uses the secondary color for the border */}
         <Avatar className="w-24 h-24 mb-4 text-3xl border-4 border-secondary">
-          <AvatarImage src={user?.profileImageUrl} alt={user?.name} />
+          <AvatarImage
+            src={user?.profileImageUrl ?? undefined}
+            alt={`${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim()}
+          />
           <AvatarFallback className="bg-gray-200 text-gray-600">
             {user?.firstName?.[0]}
             {/* {user?.lastName?.[0]} */}
