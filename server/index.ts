@@ -2,13 +2,15 @@ import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { registerRoutes } from "./routes";
 import { webcrypto } from "node:crypto";
-
-// Provide Web Crypto API in older Node versions if not present
 if (!globalThis.crypto?.getRandomValues) {
+  // Provide Web Crypto API in older Node versions
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   globalThis.crypto = webcrypto as unknown as typeof globalThis.crypto;
 }
 
-// All middleware and route registration remains the same
+import { setupVite, serveStatic, log } from "./vite";
+import { createServer } from "http"; // ✅ import HTTP server
+
 declare module "express-session" {
   interface SessionData {
     pendingAuth?: {
@@ -26,14 +28,13 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use(
   session({
-    secret: "safe-office-demo-secret", // For production, use an environment variable
+    secret: "safe-office-demo-secret",
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false }, // In production, you might set this to true
+    cookie: { secure: false },
   })
 );
 
-// Your logging middleware (this is fine)
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -55,24 +56,35 @@ app.use((req, res, next) => {
       if (logLine.length > 80) {
         logLine = logLine.slice(0, 79) + "…";
       }
-      console.log(logLine); // Using console.log for serverless environments
+      log(logLine);
     }
   });
 
   next();
 });
 
-// Register all your API routes
+// ✅ just register routes
 registerRoutes(app);
 
-// Your error handling middleware
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   const status = err.status || err.statusCode || 500;
   const message = err.message || "Internal Server Error";
   res.status(status).json({ message });
-  // It's often better not to re-throw the error in a serverless context
+  throw err;
 });
 
-// For Vercel, we export the configured Express app.
-// Vercel will handle creating the server and listening for requests.
-export default app;
+// ✅ create a real HTTP server here
+const httpServer = createServer(app);
+
+(async () => {
+  if (app.get("env") === "development") {
+    await setupVite(app, httpServer); // ✅ Pass HTTP server, not Express app
+  } else {
+    serveStatic(app);
+  }
+
+  const port = parseInt(process.env.PORT || "3000", 10);
+  httpServer.listen(port, "127.0.0.1", () => {
+    log(`serving on port ${port}`);
+  });
+})();
