@@ -16,29 +16,37 @@ const requireAuth = (req: any, res: any, next: any) => {
 export function registerRoutes(app: Express): void {
   // Login route that accepts credentials and creates a mock session
   app.post("/api/login", (req: any, res) => {
-    const loginSchema = z.object({
-      username: z.string().min(1),
-      password: z.string().min(1),
-    });
+    try {
+      const loginSchema = z.object({
+        username: z.string().min(1),
+        password: z.string().min(1),
+      });
 
-    const result = loginSchema.safeParse(req.body);
-    if (!result.success) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      const result = loginSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid credentials" });
+      }
+
+      const { username } = result.data;
+
+      if (!req.session)
+        return res.status(500).json({ message: "Session not initialized" });
+
+      req.session.user = {
+        claims: {
+          sub: username,
+          email: `${username}@abuzaria.edu`,
+          first_name: username,
+          last_name: "(Student)",
+          profile_image_url: null,
+        },
+      };
+
+      res.json({ message: "Logged in" });
+    } catch (error) {
+      console.error("Error setting up session:", error);
+      res.status(500).json({ message: "Failed to set up session" });
     }
-
-    const { username } = result.data;
-
-    req.session.user = {
-      claims: {
-        sub: username,
-        email: `${username}@abuzaria.edu`,
-        first_name: username,
-        last_name: "(Student)",
-        profile_image_url: null,
-      },
-    };
-
-    res.json({ message: "Logged in" });
   });
 
   // Logout route clears the session
@@ -62,7 +70,6 @@ export function registerRoutes(app: Express): void {
           firstName: req.user.claims.first_name,
           lastName: req.user.claims.last_name,
           profileImageUrl: req.user.claims.profile_image_url,
-          walletBalance: "4180.20",
         });
       }
 

@@ -77,6 +77,8 @@ class DbStorage implements IStorage {
         },
       });
 
+    if (!userData.id) throw new Error("userData.id is required");
+
     // Check if a wallet exists for this user, and create one if it doesn't
     const wallets = await db
       .select()
@@ -89,7 +91,9 @@ class DbStorage implements IStorage {
         .values({ id: createId(), userId: userData.id, balance: "0.00" });
     }
 
-    return (await this.getUser(userData.id)) as User;
+    const user = await this.getUser(userData.id);
+    if (!user) throw new Error("Failed to fetch user after upsert");
+    return user;
   }
 
   async updateUserBalance(userId: string, newBalance: string): Promise<void> {

@@ -34,9 +34,18 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
-  walletBalance: decimal("wallet_balance", { precision: 10, scale: 2 }).default(
-    "5000.00"
-  ),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const wallets = pgTable("wallets", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id),
+  balance: decimal("balance", { precision: 10, scale: 2 }).default("0.00"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -71,7 +80,7 @@ export const orders = pgTable("orders", {
 });
 
 export type UpsertUser = typeof users.$inferInsert;
-export type User = typeof users.$inferSelect;
+export type User = typeof users.$inferSelect & { walletBalance: string };
 
 export const insertDrinkSchema = createInsertSchema(drinks).omit({
   id: true,
@@ -90,3 +99,5 @@ export type InsertDrink = z.infer<typeof insertDrinkSchema>;
 export type Drink = typeof drinks.$inferSelect;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 export type Order = typeof orders.$inferSelect;
+export type InsertWallet = typeof wallets.$inferInsert;
+export type Wallet = typeof wallets.$inferSelect;
