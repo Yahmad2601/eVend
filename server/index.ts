@@ -9,7 +9,6 @@ if (!globalThis.crypto?.getRandomValues) {
 }
 
 import { setupVite, serveStatic, log } from "./vite";
-import { createServer } from "http"; // ✅ import HTTP server
 
 declare module "express-session" {
   interface SessionData {
@@ -73,18 +72,18 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   throw err;
 });
 
-// ✅ create a real HTTP server here
-const httpServer = createServer(app);
+let prepared = false;
 
-(async () => {
+export async function prepare() {
+  if (prepared) return;
+  prepared = true;
   if (app.get("env") === "development") {
-    await setupVite(app, httpServer); // ✅ Pass HTTP server, not Express app
+    const { createServer } = await import("http");
+    const httpServer = createServer(app);
+    await setupVite(app, httpServer);
   } else {
     serveStatic(app);
   }
+}
 
-  const port = parseInt(process.env.PORT || "3000", 10);
-  httpServer.listen(port, "127.0.0.1", () => {
-    log(`serving on port ${port}`);
-  });
-})();
+export default app;
