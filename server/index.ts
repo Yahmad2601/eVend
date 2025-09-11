@@ -1,5 +1,4 @@
 import express, { type Request, Response, NextFunction } from "express";
-import session from "express-session";
 import { registerRoutes } from "./routes";
 import { webcrypto } from "node:crypto";
 if (!globalThis.crypto?.getRandomValues) {
@@ -10,29 +9,9 @@ if (!globalThis.crypto?.getRandomValues) {
 
 import { setupVite, serveStatic, log } from "./vite";
 
-declare module "express-session" {
-  interface SessionData {
-    pendingAuth?: {
-      employeeId: string;
-      step: number;
-    };
-    authToken?: string;
-    user?: any;
-  }
-}
-
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
-app.use(
-  session({
-    secret: "safe-office-demo-secret",
-    resave: false,
-    saveUninitialized: false,
-    cookie: { secure: false },
-  })
-);
 
 app.use((req, res, next) => {
   const start = Date.now();

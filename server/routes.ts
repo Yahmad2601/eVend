@@ -3,19 +3,36 @@ import type { Express } from "express";
 import { storage } from "./storage";
 import { insertOrderSchema } from "@shared/schema";
 import { z } from "zod";
+import { SignJWT, jwtVerify } from "jose";
 
 // Authentication middleware using session
-const requireAuth = (req: any, res: any, next: any) => {
-  if (req.session?.user) {
-    req.user = req.session.user;
-    return next();
+const jwtSecret = new TextEncoder().encode(
+  process.env.JWT_SECRET || "safe-office-demo-secret"
+);
+
+const requireAuth = async (req: any, res: any, next: any) => {
+  const token = req.headers.cookie
+    ?.split(";")
+    .map((c: string) => c.trim())
+    .find((c: string) => c.startsWith("token="))
+    ?.split("=")[1];
+
+  if (!token) {
+    return res.status(401).json({ message: "Unauthorized" });
   }
-  res.status(401).json({ message: "Unauthorized" });
+
+  try {
+    const { payload } = await jwtVerify(token, jwtSecret);
+    req.user = { claims: payload };
+    return next();
+  } catch {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
 };
 
 export function registerRoutes(app: Express): void {
-  // Login route that accepts credentials and creates a mock session
-  app.post("/api/login", (req: any, res) => {
+  // Login route that accepts credentials and issues a JWT
+  app.post("/api/login", async (req: any, res) => {
     try {
       const loginSchema = z.object({
         username: z.string().min(1),
@@ -29,31 +46,36 @@ export function registerRoutes(app: Express): void {
 
       const { username } = result.data;
 
-      if (!req.session)
-        return res.status(500).json({ message: "Session not initialized" });
-
-      req.session.user = {
-        claims: {
-          sub: username,
-          email: `${username}@abuzaria.edu`,
-          first_name: username,
-          last_name: "(Student)",
-          profile_image_url: null,
-        },
+      const claims = {
+        sub: username,
+        email: `${username}@abuzaria.edu`,
+        first_name: username,
+        last_name: "(Student)",
+        profile_image_url: null,
       };
+
+      const token = await new SignJWT(claims)
+        .setProtectedHeader({ alg: "HS256" })
+        .setExpirationTime("1h")
+        .sign(jwtSecret);
+
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+      });
 
       res.json({ message: "Logged in" });
     } catch (error) {
-      console.error("Error setting up session:", error);
-      res.status(500).json({ message: "Failed to set up session" });
+      console.error("Error issuing token:", error);
+      res.status(500).json({ message: "Failed to set up auth" });
     }
   });
 
-  // Logout route clears the session
-  app.get("/api/logout", (req: any, res) => {
-    req.session.destroy(() => {
-      res.redirect("/");
-    });
+  // Logout route clears the token cookie
+  app.get("/api/logout", (_req: any, res) => {
+    res.clearCookie("token");
+    res.redirect("/");
   });
 
   // Auth routes
