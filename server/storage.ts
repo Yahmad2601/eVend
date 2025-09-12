@@ -54,6 +54,8 @@ class DbStorage implements IStorage {
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
+    if (!userData.id) throw new Error("userData.id is required for upsert");
+
     const userToInsert = {
       id: userData.id,
       email: userData.email,
@@ -77,7 +79,7 @@ class DbStorage implements IStorage {
         },
       });
 
-    if (!userData.id) throw new Error("userData.id is required");
+    // if (!userData.id) throw new Error("userData.id is required");
 
     // Check if a wallet exists for this user, and create one if it doesn't
     const wallets = await db
