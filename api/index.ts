@@ -1,5 +1,1 @@
-import app, { prepare } from "../server/index.ts";
-
-await prepare();
-
-export default app;
+export { default } from "../server/index";
