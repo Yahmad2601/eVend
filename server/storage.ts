@@ -10,7 +10,7 @@ import {
   drinks as drinksTable,
   orders as ordersTable,
 } from "@shared/schema";
-import { db } from "./db";
+import { db } from "./db.js";
 import { eq } from "drizzle-orm";
 import { createId } from "@paralleldrive/cuid2";
 
