@@ -49,7 +49,7 @@ class DbStorage implements IStorage {
       .limit(1);
     const wallet = wallets[0];
 
-    // Combine user and wallet data
+    // Combine user data with the wallet balance
     return { ...user, walletBalance: wallet?.balance || "0.00" };
   }
 
@@ -91,9 +91,7 @@ class DbStorage implements IStorage {
         .values({ id: createId(), userId: userData.id, balance: "0.00" });
     }
 
-    const user = await this.getUser(userData.id);
-    if (!user) throw new Error("Failed to fetch user after upsert");
-    return user;
+    return (await this.getUser(userData.id)) as User;
   }
 
   async updateUserBalance(userId: string, newBalance: string): Promise<void> {
