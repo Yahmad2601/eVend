@@ -60,6 +60,7 @@ export const drinks = pgTable("drinks", {
   description: text("description"),
   inStock: integer("in_stock").default(10),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(), // 👇 THIS LINE WAS ADDED
 });
 
 export const orders = pgTable("orders", {
