@@ -21,7 +21,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(
   session({
     // IMPORTANT: Make sure SESSION_SECRET is set in your Vercel environment variables
-    secret: process.env.SESSION_SECRET || "default-secret-for-dev",
+    secret: process.env.SESSION_SECRET!,
     resave: false,
     saveUninitialized: false,
     cookie: { secure: process.env.NODE_ENV === "production" },
