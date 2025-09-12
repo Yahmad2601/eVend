@@ -9,7 +9,7 @@ import {
   wallets as walletsTable,
   drinks as drinksTable,
   orders as ordersTable,
-} from "@shared/schema";
+} from "../shared/schema.js";
 import { db } from "./db.js";
 import { eq } from "drizzle-orm";
 import { createId } from "@paralleldrive/cuid2";
