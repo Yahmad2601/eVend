@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Fingerprint, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { startAuthentication } from "@simplewebauthn/browser"; // 1. Import WebAuthn function
 
 interface PinModalProps {
   isOpen: boolean;
@@ -44,15 +45,46 @@ export default function PinModal({
     }
   };
 
-  const handleFingerprint = () => {
-    // In a real app, you would integrate the Web Authentication API (WebAuthn) here.
-    // For this demonstration, we'll simulate a successful scan.
-    toast({
-      title: "Fingerprint Scanned!",
-      description: "Confirming payment...",
-    });
-    // We'll call onConfirm with a dummy PIN to proceed with the mutation.
-    onConfirm("-1"); // Use a special value to indicate fingerprint
+  const handleFingerprint = async () => {
+    try {
+      // Get the authentication challenge from your server
+      const resp = await fetch("/api/webauthn/auth-options");
+      const options = await resp.json();
+
+      // Prompt the user to scan their fingerprint/face
+      const assertion = await startAuthentication(options);
+
+      // Send the result back to your server for verification
+      const verificationResp = await fetch("/api/webauthn/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(assertion),
+      });
+
+      const verificationJSON = await verificationResp.json();
+
+      // If the server confirms verification, proceed with the payment
+      if (verificationJSON && verificationJSON.verified) {
+        toast({
+          title: "Fingerprint Verified!",
+          description: "Confirming payment...",
+        });
+        // Call onConfirm with a special value to indicate fingerprint success
+        onConfirm("-1");
+      } else {
+        throw new Error(
+          verificationJSON.error || "Fingerprint verification failed."
+        );
+      }
+    } catch (error: any) {
+      console.error(error);
+      toast({
+        title: "Verification Failed",
+        description:
+          "Could not verify fingerprint. Please try again or use your PIN.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

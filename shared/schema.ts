@@ -80,6 +80,17 @@ export const orders = pgTable("orders", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const authenticators = pgTable("authenticators", {
+  id: varchar("id").primaryKey(),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  credentialID: text("credential_id").notNull().unique(),
+  credentialPublicKey: text("credential_public_key").notNull(),
+  counter: integer("counter").notNull(),
+  transports: text("transports"),
+});
+
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect & { walletBalance: string };
 

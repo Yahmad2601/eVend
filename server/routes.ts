@@ -1,14 +1,35 @@
 import type { Express } from "express";
-// import { createServer, type Server } from "http";
 import { storage } from "./storage.js";
 import { insertOrderSchema } from "../shared/schema.js";
 import { z } from "zod";
 import { SignJWT, jwtVerify } from "jose";
 
-// Authentication middleware using session
+// --- 1. Import SimpleWebAuthn functions ---
+import {
+  generateRegistrationOptions,
+  verifyRegistrationResponse,
+  generateAuthenticationOptions,
+  verifyAuthenticationResponse,
+} from "@simplewebauthn/server";
+import { isoBase64URL } from "@simplewebauthn/server/helpers";
+import type {
+  VerifiedRegistrationResponse,
+  VerifiedAuthenticationResponse,
+} from "@simplewebauthn/server";
+
 const jwtSecret = new TextEncoder().encode(
   process.env.JWT_SECRET || "safe-office-demo-secret"
 );
+
+// --- 2. Define your app's details for WebAuthn ---
+// This MUST match your deployed URL for production
+const rpID =
+  process.env.NODE_ENV === "production" ? "e-vend.vercel.app" : "localhost";
+const origin =
+  process.env.NODE_ENV === "production"
+    ? `https://${rpID}`
+    : `http://${rpID}:3000`;
+const rpName = "eVend";
 
 const requireAuth = async (req: any, res: any, next: any) => {
   const token = req.headers.cookie
@@ -287,5 +308,130 @@ export function registerRoutes(app: Express): void {
       console.error("Vending error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
+  });
+
+  // --- Fingerprint / WebAuthn Routes ---
+
+  app.get(
+    "/api/webauthn/register-options",
+    requireAuth,
+    async (req: any, res) => {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      const userAuthenticators = await storage.getAuthenticatorsByUserId(
+        user.id
+      );
+
+      const options = await generateRegistrationOptions({
+        rpName,
+        rpID,
+        userID: user.id,
+        userName: user.email || user.id,
+        excludeCredentials: userAuthenticators.map((auth) => ({
+          id: isoBase64URL.toBuffer(auth.credentialID),
+          type: "public-key",
+        })),
+      });
+
+      req.session.challenge = options.challenge;
+      res.json(options);
+    }
+  );
+
+  app.post("/api/webauthn/register", requireAuth, async (req: any, res) => {
+    const user = await storage.getUser(req.user.claims.sub);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    let verification: VerifiedRegistrationResponse;
+    try {
+      verification = await verifyRegistrationResponse({
+        response: req.body,
+        expectedChallenge: req.session.challenge,
+        expectedOrigin: origin,
+        expectedRPID: rpID,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(400).send({ error: (error as Error).message });
+    }
+
+    const { verified, registrationInfo } = verification;
+
+    if (verified && registrationInfo) {
+      const { credentialID, credentialPublicKey, counter } = registrationInfo;
+      await storage.saveAuthenticator({
+        userId: user.id,
+        credentialID: isoBase64URL.fromBuffer(credentialID),
+        credentialPublicKey:
+          Buffer.from(credentialPublicKey).toString("base64"),
+        counter,
+      });
+    }
+
+    res.json({ verified });
+  });
+
+  app.get("/api/webauthn/auth-options", requireAuth, async (req: any, res) => {
+    const user = await storage.getUser(req.user.claims.sub);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const userAuthenticators = await storage.getAuthenticatorsByUserId(user.id);
+    const options = await generateAuthenticationOptions({
+      rpID,
+      allowCredentials: userAuthenticators.map((auth) => ({
+        id: isoBase64URL.toBuffer(auth.credentialID),
+        type: "public-key",
+      })),
+    });
+
+    req.session.challenge = options.challenge;
+    res.json(options);
+  });
+
+  app.post("/api/webauthn/auth", requireAuth, async (req: any, res) => {
+    const user = await storage.getUser(req.user.claims.sub);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const userAuthenticators = await storage.getAuthenticatorsByUserId(user.id);
+    const credentialID = isoBase64URL.fromBuffer(req.body.rawId);
+    const authenticator = userAuthenticators.find(
+      (auth) => auth.credentialID === credentialID
+    );
+
+    if (!authenticator)
+      return res.status(404).json({ message: "Authenticator not found" });
+
+    let verification: VerifiedAuthenticationResponse;
+    try {
+      verification = await verifyAuthenticationResponse({
+        response: req.body,
+        expectedChallenge: req.session.challenge,
+        expectedOrigin: origin,
+        expectedRPID: rpID,
+        authenticator: {
+          credentialID: isoBase64URL.toBuffer(authenticator.credentialID),
+          credentialPublicKey: Buffer.from(
+            authenticator.credentialPublicKey,
+            "base64"
+          ),
+          counter: authenticator.counter,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(400).send({ error: (error as Error).message });
+    }
+
+    const { verified, authenticationInfo } = verification;
+
+    if (verified) {
+      await storage.updateAuthenticatorCounter(
+        authenticator.id,
+        authenticationInfo.newCounter
+      );
+    }
+
+    res.json({ verified });
   });
 }

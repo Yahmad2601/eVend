@@ -298,7 +298,7 @@ export default function Home({
               className="grid grid-cols-2 md:grid-cols-3 gap-4"
               data-testid="drinks-grid"
             >
-              {drinks.map((drink) => (
+              {drinks.map((drink: Drink) => (
                 <DrinkCard
                   key={drink.id}
                   drink={drink}

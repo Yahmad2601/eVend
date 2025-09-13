@@ -1,6 +1,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast"; // 1. Import useToast
 import {
   ChevronLeft,
   LogOut,
@@ -8,7 +9,9 @@ import {
   FileText,
   HelpCircle,
   ChevronRight,
+  Fingerprint, // 2. Import the Fingerprint icon
 } from "lucide-react";
+import { startRegistration } from "@simplewebauthn/browser"; // 3. Import the WebAuthn function
 
 // Reusable component for menu items
 function MenuItem({
@@ -36,6 +39,40 @@ function MenuItem({
 
 export function ProfilePage() {
   const { user, logout } = useAuth();
+  const { toast } = useToast(); // 4. Initialize the toast hook
+
+  // 5. Add the handler function for fingerprint registration
+  const handleRegisterFingerprint = async () => {
+    try {
+      // Note: You will need to create this endpoint on your server
+      const resp = await fetch("/api/webauthn/register-options");
+      const options = await resp.json();
+
+      const attestation = await startRegistration(options);
+
+      // Note: You will need to create this endpoint on your server
+      await fetch("/api/webauthn/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(attestation),
+      });
+
+      toast({
+        title: "Success",
+        description: "Fingerprint has been registered successfully.",
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Registration Failed",
+        description:
+          "Could not register fingerprint. Your device may not be compatible or an error occurred.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
@@ -88,6 +125,12 @@ export function ProfilePage() {
           <MenuItem
             icon={<HelpCircle className="h-5 w-5 text-secondary" />}
             label="Service & Support"
+          />
+          {/* 6. Add the new MenuItem for fingerprint registration */}
+          <MenuItem
+            icon={<Fingerprint className="h-5 w-5 text-secondary" />}
+            label="Register Fingerprint"
+            onClick={handleRegisterFingerprint}
           />
         </div>
       </main>

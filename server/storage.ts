@@ -9,6 +9,7 @@ import {
   wallets as walletsTable,
   drinks as drinksTable,
   orders as ordersTable,
+  authenticators,
 } from "../shared/schema.js";
 import { db } from "./db.js";
 import { eq } from "drizzle-orm";
@@ -29,6 +30,12 @@ export interface IStorage {
   getUserOrders(userId: string): Promise<Order[]>;
   updateOrderStatus(orderId: string, status: string): Promise<void>;
   getOrderByOtp(otp: string): Promise<Order | null>;
+  getAuthenticatorsByUserId(userId: string): Promise<any[]>;
+  saveAuthenticator(data: any): Promise<void>;
+  updateAuthenticatorCounter(
+    authenticatorId: string,
+    newCounter: number
+  ): Promise<void>;
 }
 
 // This new class uses the real database
@@ -160,6 +167,27 @@ class DbStorage implements IStorage {
       .where(eq(ordersTable.otp, otp))
       .limit(1);
     return orders[0] || null;
+  }
+
+  async getAuthenticatorsByUserId(userId: string) {
+    return await db
+      .select()
+      .from(authenticators)
+      .where(eq(authenticators.userId, userId));
+  }
+
+  async saveAuthenticator(data: any) {
+    await db.insert(authenticators).values({ id: createId(), ...data });
+  }
+
+  async updateAuthenticatorCounter(
+    authenticatorId: string,
+    newCounter: number
+  ) {
+    await db
+      .update(authenticators)
+      .set({ counter: newCounter })
+      .where(eq(authenticators.id, authenticatorId));
   }
 }
 
