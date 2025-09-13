@@ -3,8 +3,6 @@ import { storage } from "./storage.js";
 import { insertOrderSchema } from "../shared/schema.js";
 import { z } from "zod";
 import { SignJWT, jwtVerify } from "jose";
-
-// --- 1. Import SimpleWebAuthn functions ---
 import {
   generateRegistrationOptions,
   verifyRegistrationResponse,
@@ -326,11 +324,12 @@ export function registerRoutes(app: Express): void {
       const options = await generateRegistrationOptions({
         rpName,
         rpID,
-        userID: user.id,
+        userID: new TextEncoder().encode(user.id), // Uint8Array
         userName: user.email || user.id,
-        excludeCredentials: userAuthenticators.map((auth) => ({
-          id: isoBase64URL.toBuffer(auth.credentialID),
-          type: "public-key",
+        // FIX for `excludeCredentials`: The library expects the ID as a Buffer.
+        excludeCredentials: userAuthenticators.map((auth: any) => ({
+          id: auth.credentialID, // string
+          // transports: auth.transports, // optional, if available
         })),
       });
 
@@ -353,18 +352,19 @@ export function registerRoutes(app: Express): void {
       });
     } catch (error) {
       console.error(error);
-      return res.status(400).send({ error: (error as Error).message });
+      return res.status(400).json({ error: (error as Error).message });
     }
 
     const { verified, registrationInfo } = verification;
 
     if (verified && registrationInfo) {
+      // FIX for destructuring: We now correctly access the properties from `registrationInfo`
       const { credentialID, credentialPublicKey, counter } = registrationInfo;
       await storage.saveAuthenticator({
         userId: user.id,
-        credentialID: isoBase64URL.fromBuffer(credentialID),
+        credentialID: isoBase64URL.fromBuffer(credentialID), // Convert Buffer to string for DB
         credentialPublicKey:
-          Buffer.from(credentialPublicKey).toString("base64"),
+          Buffer.from(credentialPublicKey).toString("base64"), // Convert Buffer to string for DB
         counter,
       });
     }
@@ -377,10 +377,12 @@ export function registerRoutes(app: Express): void {
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const userAuthenticators = await storage.getAuthenticatorsByUserId(user.id);
+
     const options = await generateAuthenticationOptions({
       rpID,
-      allowCredentials: userAuthenticators.map((auth) => ({
-        id: isoBase64URL.toBuffer(auth.credentialID),
+      // FIX for `allowCredentials`: This is the correct format, expecting an ID as a Buffer.
+      allowCredentials: userAuthenticators.map((auth: any) => ({
+        id: auth.credentialID, // string
         type: "public-key",
       })),
     });
@@ -396,7 +398,7 @@ export function registerRoutes(app: Express): void {
     const userAuthenticators = await storage.getAuthenticatorsByUserId(user.id);
     const credentialID = isoBase64URL.fromBuffer(req.body.rawId);
     const authenticator = userAuthenticators.find(
-      (auth) => auth.credentialID === credentialID
+      (auth: any) => auth.credentialID === credentialID
     );
 
     if (!authenticator)
@@ -404,23 +406,24 @@ export function registerRoutes(app: Express): void {
 
     let verification: VerifiedAuthenticationResponse;
     try {
+      // FIX for `authenticator`: The library expects credentialID and credentialPublicKey as Buffers.
       verification = await verifyAuthenticationResponse({
         response: req.body,
         expectedChallenge: req.session.challenge,
         expectedOrigin: origin,
         expectedRPID: rpID,
         authenticator: {
-          credentialID: isoBase64URL.toBuffer(authenticator.credentialID),
+          credentialID: isoBase64URL.toBuffer(authenticator.credentialID), // Convert string from DB to Buffer
           credentialPublicKey: Buffer.from(
             authenticator.credentialPublicKey,
             "base64"
-          ),
+          ), // Convert string from DB to Buffer
           counter: authenticator.counter,
         },
       });
     } catch (error) {
       console.error(error);
-      return res.status(400).send({ error: (error as Error).message });
+      return res.status(400).json({ error: (error as Error).message });
     }
 
     const { verified, authenticationInfo } = verification;

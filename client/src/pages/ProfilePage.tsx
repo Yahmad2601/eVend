@@ -115,6 +115,11 @@ export function ProfilePage() {
         <div className="max-w-md mx-auto space-y-3">
           {/* Icons now use the secondary text color */}
           <MenuItem
+            icon={<Fingerprint className="h-5 w-5 text-secondary" />}
+            label="Register Fingerprint"
+            onClick={handleRegisterFingerprint}
+          />
+          <MenuItem
             icon={<Shield className="h-5 w-5 text-secondary" />}
             label="Security"
           />
@@ -127,11 +132,7 @@ export function ProfilePage() {
             label="Service & Support"
           />
           {/* 6. Add the new MenuItem for fingerprint registration */}
-          <MenuItem
-            icon={<Fingerprint className="h-5 w-5 text-secondary" />}
-            label="Register Fingerprint"
-            onClick={handleRegisterFingerprint}
-          />
+          
         </div>
       </main>
 
