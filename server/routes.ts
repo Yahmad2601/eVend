@@ -46,6 +46,13 @@ const requireAuth = async (req: any, res: any, next: any) => {
   }
 };
 
+const getCookie = (req: any, name: string) =>
+  req.headers.cookie
+    ?.split(";")
+    .map((c: string) => c.trim())
+    .find((c: string) => c.startsWith(`${name}=`))
+    ?.split("=")[1];
+
 export function registerRoutes(app: Express): void {
   // Login route that accepts credentials and issues a JWT
   app.post("/api/login", async (req: any, res) => {
@@ -357,6 +364,12 @@ export function registerRoutes(app: Express): void {
       });
 
       req.session.challenge = options.challenge;
+      res.cookie("challenge", options.challenge, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 5 * 60 * 1000,
+      });
       req.session.save(() => res.json(options));
     }
   );
@@ -366,15 +379,15 @@ export function registerRoutes(app: Express): void {
     const user = await storage.getUser(req.user.claims.sub);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    let verification: VerifiedRegistrationResponse;
-    try {
-      verification = await verifyRegistrationResponse({
-        response: req.body,
-        expectedChallenge: req.session.challenge,
-        expectedOrigin: origin,
-        expectedRPID: rpID,
-      });
-    } catch (error) {
+      let verification: VerifiedRegistrationResponse;
+      try {
+        verification = await verifyRegistrationResponse({
+          response: req.body,
+          expectedChallenge: req.session.challenge || getCookie(req, "challenge"),
+          expectedOrigin: origin,
+          expectedRPID: rpID,
+        });
+      } catch (error) {
       console.error(error);
       return res.status(400).json({ error: (error as Error).message });
     }
@@ -388,7 +401,9 @@ export function registerRoutes(app: Express): void {
       await storage.saveAuthenticator({
         userId: user.id,
         credentialID: credential.id, // base64url string
-        credentialPublicKey: Buffer.from(credential.publicKey), // Buffer or Uint8Array
+        credentialPublicKey: isoBase64URL.fromBuffer(
+          Buffer.from(credential.publicKey)
+        ),
         counter: credential.counter,
         transports: credential.transports,
         deviceType: credentialDeviceType,
@@ -417,6 +432,12 @@ export function registerRoutes(app: Express): void {
     });
 
     req.session.challenge = options.challenge;
+    res.cookie("challenge", options.challenge, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 5 * 60 * 1000,
+    });
     req.session.save(() => res.json(options));
   });
 
@@ -433,26 +454,24 @@ export function registerRoutes(app: Express): void {
     if (!passkey)
       return res.status(404).json({ message: "Authenticator not found" });
 
-    let verification: VerifiedAuthenticationResponse;
-    try {
-      verification = await verifyAuthenticationResponse({
-        response: req.body,
-        expectedChallenge: req.session.challenge,
-        expectedOrigin: origin,
-        expectedRPID: rpID,
-        credential: {
-          id:
-            typeof passkey.credentialID === "string"
-              ? passkey.credentialID
-              : isoBase64URL.fromBuffer(passkey.credentialID),
-          publicKey: Buffer.isBuffer(passkey.credentialPublicKey)
-            ? passkey.credentialPublicKey
-            : Buffer.from(passkey.credentialPublicKey),
-          counter: passkey.counter,
-          ...(Array.isArray(passkey.transports)
-            ? { transports: passkey.transports }
-            : {}),
-        },
+      let verification: VerifiedAuthenticationResponse;
+      try {
+        verification = await verifyAuthenticationResponse({
+          response: req.body,
+          expectedChallenge: req.session.challenge || getCookie(req, "challenge"),
+          expectedOrigin: origin,
+          expectedRPID: rpID,
+          credential: {
+            id:
+              typeof passkey.credentialID === "string"
+                ? passkey.credentialID
+                : isoBase64URL.fromBuffer(passkey.credentialID),
+            publicKey: isoBase64URL.toBuffer(passkey.credentialPublicKey),
+            counter: passkey.counter,
+            ...(Array.isArray(passkey.transports)
+              ? { transports: passkey.transports }
+              : {}),
+          },
       });
     } catch (error) {
       console.error(error);

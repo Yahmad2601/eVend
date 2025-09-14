@@ -38,7 +38,7 @@ export interface IStorage {
   getAuthenticatorsByUserId(userId: string): Promise<any[]>;
   saveAuthenticator(data: any): Promise<void>;
   updateAuthenticatorCounter(
-    authenticatorId: string,
+    credentialID: string,
     newCounter: number
   ): Promise<void>;
   getAuthenticatorByCredentialID(credentialID: string): Promise<any>;
@@ -195,10 +195,15 @@ class DbStorage implements IStorage {
   }
 
   async getAuthenticatorsByUserId(userId: string) {
-    return await db
+    const result = await db
       .select()
       .from(authenticators)
       .where(eq(authenticators.userId, userId));
+
+    return result.map((auth) => ({
+      ...auth,
+      transports: auth.transports ? JSON.parse(auth.transports) : undefined,
+    }));
   }
 
   async saveAuthenticator(data: any) {
@@ -206,20 +211,23 @@ class DbStorage implements IStorage {
       id: createId(),
       userId: data.userId,
       credentialID: data.credentialID,
-      credentialPublicKey: data.credentialPublicKey, // This is now a Buffer from the routes file
+      credentialPublicKey: data.credentialPublicKey, // base64url string
       counter: data.counter,
+      transports: data.transports
+        ? JSON.stringify(data.transports)
+        : null,
     };
     await db.insert(authenticators).values(newAuthenticator);
   }
 
   async updateAuthenticatorCounter(
-    authenticatorId: string,
+    credentialID: string,
     newCounter: number
   ) {
     await db
       .update(authenticators)
       .set({ counter: newCounter })
-      .where(eq(authenticators.id, authenticatorId));
+      .where(eq(authenticators.credentialID, credentialID));
   }
   // 👇 3. Add the new function implementation
   async getAuthenticatorByCredentialID(credentialID: string) {
@@ -228,7 +236,13 @@ class DbStorage implements IStorage {
       .from(authenticators)
       .where(eq(authenticators.credentialID, credentialID))
       .limit(1);
-    return result[0];
+    const auth = result[0];
+    return auth
+      ? {
+          ...auth,
+          transports: auth.transports ? JSON.parse(auth.transports) : undefined,
+        }
+      : undefined;
   }
 }
 
