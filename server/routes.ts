@@ -184,6 +184,13 @@ export function registerRoutes(app: Express): void {
         otp,
       });
 
+      await storage.createTransaction({
+        userId,
+        type: "debit",
+        description: `${drink.name} Purchase`,
+        amount: orderData.amount,
+      });
+
       res.json(order);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -214,6 +221,13 @@ export function registerRoutes(app: Express): void {
       const newBalance = (currentBalance + amount).toFixed(2);
 
       await storage.updateUserBalance(userId, newBalance);
+
+      await storage.createTransaction({
+        userId,
+        type: "credit",
+        description: "Wallet Top-up",
+        amount: amount.toFixed(2),
+      });
 
       res.status(200).json({ message: "Wallet topped up successfully." });
     } catch (error) {
@@ -250,6 +264,17 @@ export function registerRoutes(app: Express): void {
     } catch (error) {
       console.error("Error fetching order:", error);
       res.status(500).json({ message: "Failed to fetch order" });
+    }
+  });
+
+  app.get("/api/transactions", requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const transactions = await storage.getUserTransactions(userId);
+      res.json(transactions);
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+      res.status(500).json({ message: "Failed to fetch transactions" });
     }
   });
 
