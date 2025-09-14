@@ -27,6 +27,7 @@ export function TopUpPage() {
       // 👇 THIS IS THE CHANGED LINE
       // Actively refetch the user data and wait for it to finish.
       await queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/transactions"] });
 
       // Now that the data is fresh, go back to the home page.
       setLocation("/home");

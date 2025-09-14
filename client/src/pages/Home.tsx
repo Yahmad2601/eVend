@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -16,31 +16,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Eye, EyeOff, PlusCircle, User, RefreshCw } from "lucide-react";
 import type { Drink, Order } from "@shared/schema";
 import { Link } from "wouter";
-
-// Mock data for transaction history
-const mockTransactions: Transaction[] = [
-  {
-    id: "1",
-    type: "debit",
-    description: "Coca-Cola Purchase",
-    amount: 150.0,
-    date: "29 Aug, 2025",
-  },
-  {
-    id: "2",
-    type: "credit",
-    description: "Wallet Top-up",
-    amount: 1000.0,
-    date: "28 Aug, 2025",
-  },
-  {
-    id: "3",
-    type: "debit",
-    description: "Fanta Purchase",
-    amount: 150.0,
-    date: "27 Aug, 2025",
-  },
-];
 
 // 1. Define the props the component will now receive.
 interface HomeProps {
@@ -78,6 +53,23 @@ export default function Home({
     retry: false,
   });
 
+  const { data: rawTransactions = [] } = useQuery<any[]>({
+    queryKey: ["/api/transactions"],
+    enabled: !!user,
+  });
+
+  const transactions: Transaction[] = rawTransactions.map((tx) => ({
+    id: tx.id,
+    type: tx.type,
+    description: tx.description,
+    amount: parseFloat(tx.amount),
+    date: new Date(tx.createdAt).toLocaleDateString("en-US", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }),
+  }));
+
   const createOrderMutation = useMutation({
     mutationFn: async (orderData: {
       drinkId: string;
@@ -90,6 +82,7 @@ export default function Home({
     onSuccess: (order: Order) => {
       setCurrentOrder(order);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
       toast({
         title: "Payment Successful!",
         description: `Your OTP is ${order.otp}`,
@@ -270,7 +263,7 @@ export default function Home({
             </Link>
           </div>
           <TransactionHistory
-            transactions={mockTransactions}
+            transactions={transactions}
             isBalanceVisible={isBalanceVisible}
           />
         </div>

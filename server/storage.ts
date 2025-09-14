@@ -5,14 +5,17 @@ import {
   type InsertDrink,
   type Order,
   type InsertOrder,
+  type Transaction,
+  type InsertTransaction,
   users as usersTable,
   wallets as walletsTable,
   drinks as drinksTable,
   orders as ordersTable,
+  transactions as transactionsTable,
   authenticators,
 } from "../shared/schema.js";
 import { db } from "./db.js";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { createId } from "@paralleldrive/cuid2";
 
 // Interface for storage operations - this remains the same
@@ -30,6 +33,8 @@ export interface IStorage {
   getUserOrders(userId: string): Promise<Order[]>;
   updateOrderStatus(orderId: string, status: string): Promise<void>;
   getOrderByOtp(otp: string): Promise<Order | null>;
+  createTransaction(transaction: InsertTransaction): Promise<Transaction>;
+  getUserTransactions(userId: string): Promise<Transaction[]>;
   getAuthenticatorsByUserId(userId: string): Promise<any[]>;
   saveAuthenticator(data: any): Promise<void>;
   updateAuthenticatorCounter(
@@ -168,6 +173,25 @@ class DbStorage implements IStorage {
       .where(eq(ordersTable.otp, otp))
       .limit(1);
     return orders[0] || null;
+  }
+
+  async createTransaction(
+    txData: InsertTransaction,
+  ): Promise<Transaction> {
+    const newTx = { id: createId(), ...txData };
+    const result = await db
+      .insert(transactionsTable)
+      .values(newTx)
+      .returning();
+    return result[0];
+  }
+
+  async getUserTransactions(userId: string): Promise<Transaction[]> {
+    return await db
+      .select()
+      .from(transactionsTable)
+      .where(eq(transactionsTable.userId, userId))
+      .orderBy(desc(transactionsTable.createdAt));
   }
 
   async getAuthenticatorsByUserId(userId: string) {

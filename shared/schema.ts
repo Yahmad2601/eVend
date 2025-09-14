@@ -80,6 +80,19 @@ export const orders = pgTable("orders", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const transactions = pgTable("transactions", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id),
+  type: varchar("type").notNull(), // 'credit' or 'debit'
+  description: text("description").notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const authenticators = pgTable("authenticators", {
   id: varchar("id").primaryKey(),
   userId: varchar("user_id")
@@ -113,3 +126,5 @@ export type InsertOrder = z.infer<typeof insertOrderSchema>;
 export type Order = typeof orders.$inferSelect;
 export type InsertWallet = typeof wallets.$inferInsert;
 export type Wallet = typeof wallets.$inferSelect;
+export type InsertTransaction = typeof transactions.$inferInsert;
+export type Transaction = typeof transactions.$inferSelect;
