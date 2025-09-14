@@ -332,7 +332,7 @@ export function registerRoutes(app: Express): void {
       });
 
       req.session.challenge = options.challenge;
-      res.json(options);
+      req.session.save(() => res.json(options));
     }
   );
 
@@ -392,7 +392,7 @@ export function registerRoutes(app: Express): void {
     });
 
     req.session.challenge = options.challenge;
-    res.json(options);
+    req.session.save(() => res.json(options));
   });
 
   // --- WebAuthn Authentication Response ---
