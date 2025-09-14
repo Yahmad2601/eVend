@@ -15,7 +15,7 @@ const jwtSecret = new TextEncoder().encode(
   process.env.JWT_SECRET || "safe-office-demo-secret"
 );
 
-// Helpers to convert between Buffer and base64url strings
+// Local helpers to convert between Buffer and base64url strings
 const toBase64URL = (buffer: Buffer) =>
   buffer
     .toString("base64")
