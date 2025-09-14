@@ -11,10 +11,22 @@ import {
   type VerifiedRegistrationResponse,
   type VerifiedAuthenticationResponse,
 } from "@simplewebauthn/server";
-import { isoBase64URL } from "@simplewebauthn/server/helpers";
 const jwtSecret = new TextEncoder().encode(
   process.env.JWT_SECRET || "safe-office-demo-secret"
 );
+
+// Local helpers to convert between Buffer and base64url strings.
+// WebAuthn expects key material in base64url format without padding, so the
+// encoder replaces URL-unsafe characters and trims trailing '='.
+const toBase64URL = (buffer: Buffer) =>
+  buffer
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+// Decoder performs the inverse conversion when verifying responses.
+const fromBase64URL = (value: string) =>
+  Buffer.from(value.replace(/-/g, "+").replace(/_/g, "/"), "base64");
 
 // --- 2. Define your app's details for WebAuthn ---
 // This MUST match your deployed URL for production
@@ -401,9 +413,7 @@ export function registerRoutes(app: Express): void {
       await storage.saveAuthenticator({
         userId: user.id,
         credentialID: credential.id, // base64url string
-        credentialPublicKey: isoBase64URL.fromBuffer(
-          Buffer.from(credential.publicKey)
-        ),
+credentialPublicKey: toBase64URL(Buffer.from(credential.publicKey)),
         counter: credential.counter,
         transports: credential.transports,
         deviceType: credentialDeviceType,
@@ -463,6 +473,16 @@ export function registerRoutes(app: Express): void {
           expectedRPID: rpID,
           credential: {
             id:
+typeof passkey.credentialID === "string"
+                ? passkey.credentialID
+                : toBase64URL(Buffer.from(passkey.credentialID)),
+            // Convert the stored base64url key back into a Buffer for verification
+            publicKey: fromBase64URL(passkey.credentialPublicKey),
+            counter: passkey.counter,
+            ...(Array.isArray(passkey.transports)
+              ? { transports: passkey.transports }
+              : {}),
+          },
       });
     } catch (error) {
       console.error(error);
