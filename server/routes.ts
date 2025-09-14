@@ -410,9 +410,8 @@ export function registerRoutes(app: Express): void {
       await storage.saveAuthenticator({
         userId: user.id,
         credentialID: credential.id, // base64url string
-        credentialPublicKey: toBase64URL(
-          Buffer.from(credential.publicKey)
-        ),
+        // Store the raw key material as a base64url string for safe transport
+        credentialPublicKey: toBase64URL(Buffer.from(credential.publicKey)),
         counter: credential.counter,
         transports: credential.transports,
         deviceType: credentialDeviceType,
@@ -475,6 +474,7 @@ export function registerRoutes(app: Express): void {
               typeof passkey.credentialID === "string"
                 ? passkey.credentialID
                 : toBase64URL(Buffer.from(passkey.credentialID)),
+            // Convert the stored base64url key back into a Buffer for verification
             publicKey: fromBase64URL(passkey.credentialPublicKey),
             counter: passkey.counter,
             ...(Array.isArray(passkey.transports)
