@@ -15,13 +15,16 @@ const jwtSecret = new TextEncoder().encode(
   process.env.JWT_SECRET || "safe-office-demo-secret"
 );
 
-// Local helpers to convert between Buffer and base64url strings
+// Local helpers to convert between Buffer and base64url strings.
+// WebAuthn expects key material in base64url format without padding, so the
+// encoder replaces URL-unsafe characters and trims trailing '='.
 const toBase64URL = (buffer: Buffer) =>
   buffer
     .toString("base64")
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=+$/, "");
+// Decoder performs the inverse conversion when verifying responses.
 const fromBase64URL = (value: string) =>
   Buffer.from(value.replace(/-/g, "+").replace(/_/g, "/"), "base64");
 
