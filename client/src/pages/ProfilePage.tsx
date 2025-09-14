@@ -45,7 +45,9 @@ export function ProfilePage() {
   const handleRegisterFingerprint = async () => {
     try {
       // Note: You will need to create this endpoint on your server
-      const resp = await fetch("/api/webauthn/register-options");
+      const resp = await fetch("/api/webauthn/register-options", {
+        credentials: "include",
+      });
       const options = await resp.json();
 
       const attestation = await startRegistration(options);
@@ -56,6 +58,7 @@ export function ProfilePage() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify(attestation),
       });
 

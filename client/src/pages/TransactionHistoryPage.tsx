@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import {
   ArrowLeft,
@@ -10,59 +11,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Transaction } from "@/components/TransactionHistory";
-
-// ... (mock data remains the same)
-const allMockTransactions: Transaction[] = [
-  {
-    id: "1",
-    type: "debit",
-    description: "Coca-Cola Purchase",
-    amount: 150.0,
-    date: "29 Aug, 2025",
-  },
-  {
-    id: "2",
-    type: "credit",
-    description: "Wallet Top-up",
-    amount: 1000.0,
-    date: "28 Aug, 2025",
-  },
-  {
-    id: "3",
-    type: "debit",
-    description: "Fanta Purchase",
-    amount: 150.0,
-    date: "27 Aug, 2025",
-  },
-  {
-    id: "4",
-    type: "debit",
-    description: "Sprite Purchase",
-    amount: 150.0,
-    date: "26 Aug, 2025",
-  },
-  {
-    id: "5",
-    type: "credit",
-    description: "Wallet Top-up",
-    amount: 500.0,
-    date: "25 Aug, 2025",
-  },
-  {
-    id: "6",
-    type: "debit",
-    description: "Water Purchase",
-    amount: 100.0,
-    date: "24 Aug, 2025",
-  },
-  {
-    id: "7",
-    type: "debit",
-    description: "Pepsi Purchase",
-    amount: 150.0,
-    date: "23 Aug, 2025",
-  },
-];
 
 const TransactionItem = ({
   tx,
@@ -106,8 +54,23 @@ export default function TransactionHistoryPage({
   setIsBalanceVisible,
 }: TransactionHistoryPageProps) {
   const [filter, setFilter] = useState("all");
+  const { data: rawTransactions = [] } = useQuery<any[]>({
+    queryKey: ["/api/transactions"],
+  });
 
-  const filteredTransactions = allMockTransactions.filter((tx) => {
+  const allTransactions: Transaction[] = rawTransactions.map((tx) => ({
+    id: tx.id,
+    type: tx.type,
+    description: tx.description,
+    amount: parseFloat(tx.amount),
+    date: new Date(tx.createdAt).toLocaleDateString("en-US", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }),
+  }));
+
+  const filteredTransactions = allTransactions.filter((tx) => {
     if (filter === "all") return true;
     return tx.type === filter;
   });

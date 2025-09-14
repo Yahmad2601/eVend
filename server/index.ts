@@ -1,5 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
+import connectPg from "connect-pg-simple";
 import { registerRoutes } from "./routes.js";
 import { webcrypto } from "node:crypto";
 
@@ -16,8 +17,11 @@ declare module "express-session" {
 }
 
 const app = express();
+app.set("trust proxy", 1);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+const PgStore = connectPg(session);
 
 app.use(
   session({
@@ -25,6 +29,11 @@ app.use(
     secret: process.env.SESSION_SECRET!,
     resave: false,
     saveUninitialized: false,
+    store: new PgStore({
+      conString: process.env.DATABASE_URL,
+      createTableIfMissing: true,
+      tableName: "sessions",
+    }),
     cookie: {
       secure: process.env.NODE_ENV === "production",
       maxAge: 5 * 60 * 1000, // 5 minutes
