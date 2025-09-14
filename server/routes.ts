@@ -8,13 +8,10 @@ import {
   verifyRegistrationResponse,
   generateAuthenticationOptions,
   verifyAuthenticationResponse,
+  type VerifiedRegistrationResponse,
+  type VerifiedAuthenticationResponse,
 } from "@simplewebauthn/server";
 import { isoBase64URL } from "@simplewebauthn/server/helpers";
-import type {
-  VerifiedRegistrationResponse,
-  VerifiedAuthenticationResponse,
-} from "@simplewebauthn/server";
-
 const jwtSecret = new TextEncoder().encode(
   process.env.JWT_SECRET || "safe-office-demo-secret"
 );
@@ -326,10 +323,11 @@ export function registerRoutes(app: Express): void {
         rpID,
         userID: new TextEncoder().encode(user.id), // Uint8Array
         userName: user.email || user.id,
-        // FIX for `excludeCredentials`: The library expects the ID as a Buffer.
         excludeCredentials: userAuthenticators.map((auth: any) => ({
-          id: auth.credentialID, // string
-          // transports: auth.transports, // optional, if available
+          id: auth.credentialID,
+          ...(Array.isArray(auth.transports)
+            ? { transports: auth.transports }
+            : {}),
         })),
       });
 
@@ -338,6 +336,7 @@ export function registerRoutes(app: Express): void {
     }
   );
 
+  // --- WebAuthn Registration Response ---
   app.post("/api/webauthn/register", requireAuth, async (req: any, res) => {
     const user = await storage.getUser(req.user.claims.sub);
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -358,21 +357,24 @@ export function registerRoutes(app: Express): void {
     const { verified, registrationInfo } = verification;
 
     if (verified && registrationInfo) {
-      // Destructure from registrationInfo.credential
-      const { id, publicKey, counter } = registrationInfo.credential;
+      const { credential, credentialDeviceType, credentialBackedUp } =
+        registrationInfo;
+      // Save passkey in DB as per official docs
       await storage.saveAuthenticator({
         userId: user.id,
-        credentialID: isoBase64URL.fromBuffer(
-          Buffer.isBuffer(id) ? id : Buffer.from(id)
-        ),
-        credentialPublicKey: Buffer.from(publicKey).toString("base64"),
-        counter,
+        credentialID: credential.id, // base64url string
+        credentialPublicKey: Buffer.from(credential.publicKey), // Buffer or Uint8Array
+        counter: credential.counter,
+        transports: credential.transports,
+        deviceType: credentialDeviceType,
+        backedUp: credentialBackedUp,
       });
     }
 
     res.json({ verified });
   });
 
+  // --- WebAuthn Authentication Options ---
   app.get("/api/webauthn/auth-options", requireAuth, async (req: any, res) => {
     const user = await storage.getUser(req.user.claims.sub);
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -381,10 +383,11 @@ export function registerRoutes(app: Express): void {
 
     const options = await generateAuthenticationOptions({
       rpID,
-      // FIX for `allowCredentials`: This is the correct format, expecting an ID as a Buffer.
       allowCredentials: userAuthenticators.map((auth: any) => ({
-        id: auth.credentialID, // string
-        type: "public-key",
+        id: auth.credentialID, // base64url string
+        ...(Array.isArray(auth.transports)
+          ? { transports: auth.transports }
+          : {}),
       })),
     });
 
@@ -392,36 +395,40 @@ export function registerRoutes(app: Express): void {
     res.json(options);
   });
 
+  // --- WebAuthn Authentication Response ---
   app.post("/api/webauthn/auth", requireAuth, async (req: any, res) => {
     const user = await storage.getUser(req.user.claims.sub);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const userAuthenticators = await storage.getAuthenticatorsByUserId(user.id);
-    const credentialID = isoBase64URL.fromBuffer(req.body.rawId);
-    const authenticator = userAuthenticators.find(
-      (auth: any) => auth.credentialID === credentialID
+    const passkey = userAuthenticators.find(
+      (auth: any) => auth.credentialID === req.body.id
     );
 
-    if (!authenticator)
+    if (!passkey)
       return res.status(404).json({ message: "Authenticator not found" });
 
     let verification: VerifiedAuthenticationResponse;
     try {
-      // FIX for `authenticator`: The library expects credentialID and credentialPublicKey as Buffers.
       verification = await verifyAuthenticationResponse({
         response: req.body,
         expectedChallenge: req.session.challenge,
         expectedOrigin: origin,
         expectedRPID: rpID,
-        authenticator: {
-          credentialID: isoBase64URL.toBuffer(authenticator.credentialID),
-          credentialPublicKey: Buffer.from(
-            authenticator.credentialPublicKey,
-            "base64"
-          ),
-          counter: authenticator.counter,
+        credential: {
+          id:
+            typeof passkey.credentialID === "string"
+              ? passkey.credentialID
+              : isoBase64URL.fromBuffer(passkey.credentialID),
+          publicKey: Buffer.isBuffer(passkey.credentialPublicKey)
+            ? passkey.credentialPublicKey
+            : Buffer.from(passkey.credentialPublicKey),
+          counter: passkey.counter,
+          ...(Array.isArray(passkey.transports)
+            ? { transports: passkey.transports }
+            : {}),
         },
-      } as any);
+      });
     } catch (error) {
       console.error(error);
       return res.status(400).json({ error: (error as Error).message });
@@ -429,9 +436,9 @@ export function registerRoutes(app: Express): void {
 
     const { verified, authenticationInfo } = verification;
 
-    if (verified) {
+    if (verified && authenticationInfo) {
       await storage.updateAuthenticatorCounter(
-        authenticator.id,
+        passkey.credentialID,
         authenticationInfo.newCounter
       );
     }

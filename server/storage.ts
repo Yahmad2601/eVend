@@ -36,6 +36,7 @@ export interface IStorage {
     authenticatorId: string,
     newCounter: number
   ): Promise<void>;
+  getAuthenticatorByCredentialID(credentialID: string): Promise<any>;
 }
 
 // This new class uses the real database
@@ -177,7 +178,14 @@ class DbStorage implements IStorage {
   }
 
   async saveAuthenticator(data: any) {
-    await db.insert(authenticators).values({ id: createId(), ...data });
+    const newAuthenticator = {
+      id: createId(),
+      userId: data.userId,
+      credentialID: data.credentialID,
+      credentialPublicKey: data.credentialPublicKey, // This is now a Buffer from the routes file
+      counter: data.counter,
+    };
+    await db.insert(authenticators).values(newAuthenticator);
   }
 
   async updateAuthenticatorCounter(
@@ -188,6 +196,15 @@ class DbStorage implements IStorage {
       .update(authenticators)
       .set({ counter: newCounter })
       .where(eq(authenticators.id, authenticatorId));
+  }
+  // 👇 3. Add the new function implementation
+  async getAuthenticatorByCredentialID(credentialID: string) {
+    const result = await db
+      .select()
+      .from(authenticators)
+      .where(eq(authenticators.credentialID, credentialID))
+      .limit(1);
+    return result[0];
   }
 }
 
