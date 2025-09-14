@@ -358,13 +358,14 @@ export function registerRoutes(app: Express): void {
     const { verified, registrationInfo } = verification;
 
     if (verified && registrationInfo) {
-      // FIX for destructuring: We now correctly access the properties from `registrationInfo`
-      const { credentialID, credentialPublicKey, counter } = registrationInfo;
+      // Destructure from registrationInfo.credential
+      const { id, publicKey, counter } = registrationInfo.credential;
       await storage.saveAuthenticator({
         userId: user.id,
-        credentialID: isoBase64URL.fromBuffer(credentialID), // Convert Buffer to string for DB
-        credentialPublicKey:
-          Buffer.from(credentialPublicKey).toString("base64"), // Convert Buffer to string for DB
+        credentialID: isoBase64URL.fromBuffer(
+          Buffer.isBuffer(id) ? id : Buffer.from(id)
+        ),
+        credentialPublicKey: Buffer.from(publicKey).toString("base64"),
         counter,
       });
     }
@@ -413,14 +414,14 @@ export function registerRoutes(app: Express): void {
         expectedOrigin: origin,
         expectedRPID: rpID,
         authenticator: {
-          credentialID: isoBase64URL.toBuffer(authenticator.credentialID), // Convert string from DB to Buffer
+          credentialID: isoBase64URL.toBuffer(authenticator.credentialID),
           credentialPublicKey: Buffer.from(
             authenticator.credentialPublicKey,
             "base64"
-          ), // Convert string from DB to Buffer
+          ),
           counter: authenticator.counter,
         },
-      });
+      } as any);
     } catch (error) {
       console.error(error);
       return res.status(400).json({ error: (error as Error).message });
