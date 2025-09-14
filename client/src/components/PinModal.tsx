@@ -48,7 +48,9 @@ export default function PinModal({
   const handleFingerprint = async () => {
     try {
       // Get the authentication challenge from your server
-      const resp = await fetch("/api/webauthn/auth-options");
+      const resp = await fetch("/api/webauthn/auth-options", {
+        credentials: "include",
+      });
       const options = await resp.json();
 
       // Prompt the user to scan their fingerprint/face
@@ -58,6 +60,7 @@ export default function PinModal({
       const verificationResp = await fetch("/api/webauthn/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(assertion),
       });
 
