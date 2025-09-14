@@ -463,15 +463,6 @@ export function registerRoutes(app: Express): void {
           expectedRPID: rpID,
           credential: {
             id:
-              typeof passkey.credentialID === "string"
-                ? passkey.credentialID
-                : isoBase64URL.fromBuffer(passkey.credentialID),
-            publicKey: isoBase64URL.toBuffer(passkey.credentialPublicKey),
-            counter: passkey.counter,
-            ...(Array.isArray(passkey.transports)
-              ? { transports: passkey.transports }
-              : {}),
-          },
       });
     } catch (error) {
       console.error(error);
